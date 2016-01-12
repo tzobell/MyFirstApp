@@ -1,0 +1,111 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+
+    <item android:id = "@+id/play"
+        android:icon="@drawable/play"
+        android:title="play"/>
+    <item
+        android:icon="@drawable/triangle"
+        android:id="@+id/polygon"
+        android:title="@string/polygon"
+        app:showAsAction="ifRoom">
+
+        <menu>
+
+
+            <item android:id="@+id/line"
+                android:icon="@drawable/line"
+                android:title="@string/line"/>
+
+            <item android:id="@+id/triangle"
+                android:icon="@drawable/triangle"
+                android:title="@string/triangle"/>
+
+
+            <item android:id="@+id/square"
+                android:icon="@drawable/square"
+                android:title="@string/square"/>
+
+
+            <item android:id="@+id/pentagon"
+                android:icon="@drawable/pentagon"
+                android:title="@string/pentagon"/>
+
+
+
+            <item android:id="@+id/hexagon"
+                android:icon="@drawable/hexagon"
+                android:title="@string/hexagon"/>
+
+            <item android:id="@+id/heptagon"
+                android:icon="@drawable/heptagon"
+                android:title="@string/heptagon"/>
+
+
+            <item android:id="@+id/octagon"
+                android:icon="@drawable/octagon"
+                android:title="@string/octagon"/>
+
+
+
+            <item android:id="@+id/nonagon"
+                android:icon="@drawable/nonagon"
+                android:title="@string/nonagon"/>
+
+
+            <item android:id="@+id/decagon"
+                android:icon="@drawable/decagon"
+                android:title="@string/decagon"/>
+
+            <item android:id="@+id/hendecagon"
+                android:icon="@drawable/hendecagon"
+                android:title="@string/hendecagon"/>
+
+
+
+            <item android:id="@+id/dodecagon"
+                android:icon="@drawable/dodecagon"
+                android:title="@string/dodecagon"/>
+
+            <item android:id="@+id/circle"
+                android:icon="@drawable/circle"
+                android:title="@string/circle"/>
+        </menu>
+
+    </item>
+    <item android:id="@+id/clear"
+        android:icon="@drawable/clear"
+        android:title="@string/clear"
+        app:showAsAction="ifRoom"        />
+    <item android:id="@+id/savemotion"
+
+        android:title="@string/savemotion"
+        app:showAsAction="ifRoom"        />
+
+    <item android:id="@+id/loadmotion"
+
+        android:title="@string/loadmotion"
+        app:showAsAction="ifRoom"        />
+
+    <item android:id="@+id/playmotion"
+
+        android:title="@string/playmotion"
+        app:showAsAction="ifRoom"        />
+    <item android:id="@+id/oneless"
+
+        android:title="@string/oneless"
+        app:showAsAction="ifRoom"        />
+
+    <item android:id="@+id/onemore"
+
+        android:title="@string/onemore"
+        app:showAsAction="ifRoom"        />
+
+    <item android:id="@+id/undo"
+
+        android:title="@string/undo"
+        app:showAsAction="ifRoom"        />
+
+</menu>

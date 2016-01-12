@@ -1,0 +1,204 @@
+package com.mycompany.myfirstapp;
+
+import android.graphics.Point;
+import android.util.Pair;
+
+
+public final class Maths {
+
+    public static final double PHI = (1+ Math.sqrt(5))/2;
+   public static double GetDistance(Point a, Point b){
+        return GetDistance(a.x, a.y, b.x, b.y);
+    }
+    public static double GetDistance(Pair<Float,Float> a, Pair<Float,Float> b){
+        return GetDistance(a.first, a.second, b.first, b.second);
+    }
+    public static double GetDistance(float x1,  float y1,float x2, float y2) {
+        return Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
+    }
+
+    public static double GetDistance(double x1,  double y1,double x2, double y2) {
+        return Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
+    }
+    public static double GetDistance(float x1,  float y1,Pair<Float,Float> b) {
+        return GetDistance(x1, y1, b.first, b.second);
+    }
+
+    public static double GetDistance(Pair<Float,Float> a, float x2,  float y2) {
+        return GetDistance(a.first,a.second,x2,y2);
+    }
+
+
+    public static double GetDistance(PointFormula a, float x2,  float y2) {
+        return GetDistance(a.x,a.y,x2,y2);
+    }
+
+    public static double GetDistance(float x1,  float y1,PointFormula b) {
+        return GetDistance(x1, y1, b.x, b.y);
+    }
+
+    public static double GetDistance(PointFormula a, PointFormula b){
+        return GetDistance(a.x, a.y, b.x, b.y);
+    }
+
+    public static boolean inRange(float a, float b, float testnumber){
+        boolean within = false;
+        if(a > b){
+            float tempa = a;
+            a = b;
+            b = tempa;
+        }
+        if(testnumber >= a  && testnumber <= b){
+            within = true;
+        }
+        return within;
+    }
+
+    public static float closest(float a, float b, float testnumber){
+        float difA = Math.abs(a-testnumber);
+        float difB = Math.abs(b - testnumber);
+        return difB<difA?difB:difA;
+
+    }
+
+
+    public static Pair<Float,Float> findDistantPoint(Pair<Float,Float> start, Pair<Float,Float>end, double distance ){
+        return findDistantPoint(start, end, distance, true);
+    }
+    //find point on line(start,end) that is distance away from start
+    public static Pair<Float,Float> findDistantPoint(Pair<Float,Float> start, Pair<Float,Float>end, double distance, boolean inrange ){
+
+        LineFormula lf = new LineFormula(start.first,start.second,end.first,end.second);
+
+
+        return  lf.findDistantPoint(distance, inrange);
+    }
+
+    //determine if circle a and b intersect and if so the points at which they intersect
+    public static Pair<Boolean,Pair<Pair<Float,Float>,Pair<Float,Float>>> CirclesIntersectPoints(CircleFormula a, CircleFormula b) {
+        boolean intersect = true;
+        double y1 = Double.NaN;
+        double y2 = Double.NaN;
+        double x1 = Double.NaN;
+        double x2 = Double.NaN;
+
+        //extend circle formulas
+        //circle a = (x-ha)^2 + (y-ka)^2 = ra^2 => x^2 - 2hax + ha^2 + y^2 -2hay + ka^2 = ra^2
+        //circle b = (x-hb)^2 + (y-kb)^2 = rb^2 => x^2 - 2hbx + hb^2 + y^2 -2hby + kb^2 = rb^2
+
+        // times first formula by -1
+        // -1(x^2 - 2hax + ha^2 + y^2 -2hay + ka^2 = ra^2) =>
+        // -x^2 + 2hax - ha^2 - y^2 + 2hay - ka^2 = -ra^2
+
+        //add formulas together to eliminate x^2
+        //   -x^2 + 2hax - ha^2 - y^2 + 2hay - ka^2 = -ra^2
+        //   +
+        //   x^2 - 2hbx + hb^2 + y^2 - 2hby + kb^2 =  rb^2
+        // ____________________________________________________
+        // 2hax -2hbx -ha^2 + hb^2 +2hay - 2hby - ka^2 + kb^2 = rb^2 - ra^2 =>
+        // 2hax -2hbx -ha^2 + hb^2 +2hay - 2hby - ka^2 + kb^2 - rb^2 + ra^2 = 0
+
+        // double nx = (2 * ha * x) - (2 * hb * x)
+        // double iy = (2*ha*y) - (2*hb*y)
+        // double num =  hb^2 - ha^2  + kb^2 - ka^2 + ra^2 - rb^2
+
+        double n = 2 * (a.h - b.h);
+        double i = 2 * (a.k - b.k);
+        double num = Math.pow(b.h, 2) - Math.pow(a.h, 2) + Math.pow(b.k, 2) - Math.pow(a.k, 2) + Math.pow(a.radius, 2) - Math.pow(b.radius, 2);
+
+        // nx + iy + num = 0
+        // x = ((-iy-num)/n)
+
+        //sub x for (-iy-num)/n in (x^2 - 2hax + ha^2 + y^2 -2hay + ka^2 = ra^2)
+        //x^2 - 2hax + ha^2 + y^2 -2hay + ka^2 = ra^2=>
+        //((-iy-num)/n)^2 - 2((-iy-num)/n)ha + ha^2 + y^2 -2hay + ka^2 = ra^2 =>
+        //(iy^2)/n^2 +(((2*i*num)y)/n^2 + (num^2)/n^2 +  (2*ha*i)y/n + 2*ha/n  + ha^2 + y^2 -2hay + ka^2 -ra^2=0
+
+        //Ay^2 = (iy^2)/n^2 + y^2
+        //By = (((2*i*num)y)/n^2 +  (2*ha*i)y/n - 2hay
+        //C = (num^2)/n^2  + 2*ha/n  + ha^2   + ka^2 -ra^2
+
+        double A = (Math.pow(i, 2) / Math.pow(n, 2)) + 1;
+        double B = (2 * i * num / Math.pow(n, 2) / Math.pow(n, 2)) + ((2 * a.h * i) / n) - (2 * a.k);
+        double C = (Math.pow(num, 2) / Math.pow(n, 2)) + ((2 * a.h) / n) + Math.pow(a.h, 2) + Math.pow(a.k, 2) - Math.pow(a.radius, 2);
+
+        //Ay^2 + By + C = 0
+        //find answers to equation with quadradic formula
+        //region inside sqaure root of quadradic formula B^2 - 4AC
+        double quadsquareroot = (B * B) - (4 * A * C);
+
+        //if solution to quadradic formula
+        if (quadsquareroot >= 0) {
+            y1 = (-B + Math.sqrt((B * B) - (4 * A * C))) / (2 * A);
+            y2 = (-B - Math.sqrt((B * B) - (4 * A * C))) / (2 * A);
+            //plug y values into x = ((-iy-num)/n) to get x answers
+            x1 = ((-1 * i * y1) - num) / n;
+            x2 = ((-1 * i * y2) - num) / n;
+        }
+        //if not
+        else {
+            intersect = false;
+        }
+        // Pair<Boolean,Pair<Pair<Float,Float>,Pair<Float,Float>>>
+        return new Pair<>(intersect, new Pair<>(new Pair<>((float) x1, (float) y1), new Pair<>((float) x2, (float) y2)));
+    }
+
+
+    //find the area of the overlapping sections of the two circles
+    public static double FindAreaOverlappingCircles(CircleFormula a, CircleFormula b){
+        double area = 0;
+            Pair<Float,Float> A = new Pair<>(a.h,a.k);
+            Pair<Float,Float> B = new Pair<>(b.h,b.k);
+            double d = Math.abs(GetDistance(A,B));//distance from center of circle a to center of circle c
+        if(d < (a.radius + b.radius)) {
+            if(a.radius < b.radius){
+                CircleFormula temp = b;
+                b = a;
+                a = temp;
+            }
+
+            //if distance between center of a and center of b is less than radius of a - radius of b, then circle b is completely inside circle a
+            if(d < Math.abs(a.radius - b.radius)){
+                area = b.Area();
+            }
+            //circles partially overlap
+            else {
+                //area of circle sector = (theta/2) * r^2
+                //point C and D are the points at which circle a and b intersect
+                //theta = angle CAD of triangle ACD
+                //find theta
+                //divide  triangle ACD into two right triangles ADG and AEG
+                //cos = adjacent/hypotenuse
+                //adjacent = d/2
+                //hypotenuse = radius of circle a or line segment DA
+                //cos(theta/2) = (d/2)/r => theta/2 = cox^-1(d/2r) => theta = 2cos^-1(d/2r)
+                double thetaA = 2 * Math.acos(d / (2 * a.radius));
+                //compute area of circle sector for circle a
+                double ACDSector = (thetaA / 2) * a.radius * a.radius;
+                //area of triangle = (r^2)/2 * sin(theta)
+                double triangle_ACD_Area = .5 * Math.pow(a.radius, 2) * Math.sin(thetaA);
+                double areasegmentA = ACDSector - triangle_ACD_Area;
+                //repeat for circle b
+                double thetaB = 2 * Math.acos(d / (2 * b.radius));
+                double BCDSector = (thetaB / 2) * b.radius * b.radius;
+                double triangle_BCD_Area = .5 * Math.pow(b.radius, 2) * Math.sin(thetaB);
+                double areasegmentB = BCDSector - triangle_BCD_Area;
+                area = areasegmentA + areasegmentB;
+            }
+        }
+        return area;
+    }
+
+
+    public static double CircleDistance(CircleFormula a, CircleFormula b){
+        return GetDistance(a.h,a.k,b.h,b.k) - (a.radius + b.radius);
+    }
+
+
+    public static Pair<Float,Float> FindTriangleCenter(Pair<Float,Float> a,Pair<Float,Float> b, Pair<Float,Float> c ){
+        float x = (a.first + b.first + c.first)/3;
+        float y = (a.second + b.second + c.second)/3;
+        return new Pair<>(x,y);
+    }
+
+}
