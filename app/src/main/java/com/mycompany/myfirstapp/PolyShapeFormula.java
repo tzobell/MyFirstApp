@@ -19,6 +19,7 @@ public class PolyShapeFormula implements ShapeFormula {
     Vector<ShapeFormula> inside;
 
     Vector<ShapeFormula> connectedShapes;
+    Vector<LineFormula> centerConnecting;
     private CircleFormula circumcircle;
     private CircleFormula incircle;
 
@@ -44,6 +45,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     gpts = new Vector<>();
     pairgpts = new Vector<>();
     connectingLines = new Vector<>();
+    centerConnecting= new Vector<>();
     gpoints =null;// shapepoints%2==0?new float[shapepoints + (((shapepoints-1)*shapepoints))]:new float[(shapepoints + (((shapepoints-1)*shapepoints)))-1];
 }
     //Initilizes values for other variables and fills in array and vector values
@@ -262,9 +264,13 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
                     PointFormula igolden[] = shapeLines.get(i).GetGoldenPoints();
                     PointFormula jgolden[] = shapeLines.get(j).GetGoldenPoints();
                     int bi = igolden.length - 1;
+                    int ai = 0;
                     for (PointFormula anIgolden : igolden) {
                         LineFormula lf = new LineFormula(anIgolden.x, anIgolden.y, jgolden[bi].x, jgolden[bi].y, true);
                         connectingLines.add(lf);
+                        if(bi == jgolden.length/2 && ai == igolden.length/2){
+                            centerConnecting.add(lf);
+                        }
                         PointFormula[] lfpf  = lf.GetGoldenPoints();
                         goldenP.addAll(Arrays.asList(lfpf));
                         for(PointFormula pf:lfpf){
@@ -272,6 +278,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
                             gpts.add(pf.y);
                         }
                         --bi;
+                        ai++;
 
                     }
                 }
@@ -506,6 +513,49 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         return point;
     }
 
+
+    //don't include golden points of connecting lines when searching for the closest point.
+    public Pair<Float,Float> GetBasicClosestPoint(float x,float y){
+        Pair<Float, Float> point = new Pair<>(cx, cy);
+        CircleFormula testCircle = incircle;
+        Vector<LineFormula> lines = shapeLines;
+        try {
+            ShapeFormula sf = FindCircumShape(new Pair<>(x, y));
+            int out = sf == null||sf==circumcircle ? 0 : sf == this||sf==incircle ? 1 : 2;
+            switch (out) {
+
+                //sf == null which mean (X,Y) lies out of bounds of this shape
+                case 0:
+                    //set testCircle to circumcircle so that only the circumscribed circle of the polygon is searched for, for the closest point
+                    point = GetClosestToCircumCircle(x,y);
+
+                    //sf == this
+                case 1:
+
+                    point = GetClosestPoint(x,y, lines);
+                    Pair<Float,Float> pointA = GetClosestPoint(x,y,centerConnecting);
+                    if(Maths.GetDistance(point,x,y) > Maths.GetDistance(pointA,x,y)){
+                        point = pointA;
+                    }
+                    point = comparePointToCircle(x,y,point,testCircle,false, null,null);
+                    break;
+
+                //sf !=this which mean (X,Y) lies with in a shape that lies within this shape
+                case 2:
+                    point = sf.GetBasicClosestPoint(x, y);
+                    break;
+            }
+        }
+
+        catch (Exception e) {
+            String a = e.getMessage();
+            System.out.println(a);
+        }
+        return new Pair<>(point.first, point.second);
+    }
+    public Pair<Float,Float> GetBasicClosestPoint(Pair<Float,Float> p){
+        return GetBasicClosestPoint(p.first,p.second);
+    }
     private Pair<Float,Float> GetClosestPoint(float X, float Y, boolean startpoints, Float xstart,Float ystart){
         Pair<Float, Float> point = new Pair<>(cx, cy);
         CircleFormula testCircle = incircle;
@@ -682,7 +732,8 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     //determine if the shape passed is inside this shape
     public boolean inBounds(Formula shape){
         boolean in = true;
-        Pair<Float,Float>[] kp = shape.GetKeyPoints();
+        in = circumcircle.inBounds(shape);
+        /*Pair<Float,Float>[] kp = shape.GetKeyPoints();
         try {
             for (int i = 0; i < kp.length; ++i) {
                 if(!inBounds(kp[i]) ){
@@ -694,7 +745,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         catch (Exception e){
             String a  = e.getMessage();
             System.out.println(a);
-        }
+        }*/
             return in;
     }
 
@@ -749,6 +800,9 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     //other wise do not add shape to this shape and return false
     public Pair<Boolean,ShapeFormula> AddShape(ShapeFormula shape){
         Pair<Boolean,ShapeFormula> bs = new Pair<>(false,null);
+        if(Math.abs(shape.GetCircumCircle().h - circumcircle.h)<=.1 && Math.abs(shape.GetCircumCircle().k -circumcircle.k)<=.1 && Math.abs(shape.GetCircumCircle().radius - circumcircle.radius)<=.1){
+            bs = new Pair<>(false,null);
+        }
         boolean in = inBounds(shape);
         try {
             if (in ) {
@@ -809,42 +863,52 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     }
     //note the play is the frequency = area(this)/area(shapes inside this shape)
     //note the play is the frequency = area(this)/area(shapes inside this shape)
-    public void Play(){
+    public void Play() {
 
+        try {
+            double diamater = this.getDiamater();
 
-        double diamater = this.getDiamater();
+            double area = circumcircle.Area();
+            double f = area / incircle.Area();
+            double radius = circumcircle.radius;
+            play(f);
+            for (ShapeFormula sh : inside) {
 
-        double area = circumcircle.Area();
-        double f = area/incircle.Area();
-        double radius = circumcircle.radius;
-        play(f);
-        for(ShapeFormula sh:inside){
-
-            double frequency = area/(Math.PI *(Math.pow((sh.getDiamater()/2),2)));
-            sh.Play();
-            play(frequency);
-        }
-
-        for(ShapeFormula sh:connectedShapes){
-            double distance = Maths.CircleDistance(circumcircle, sh.GetCircumCircle());
-            if(distance< 0){
-                LineFormula lf = new LineFormula(circumcircle.h,circumcircle.k,sh.GetCircumCircle().h,sh.GetCircumCircle().k);
-
+                double frequency = area / (Math.PI * (Math.pow((sh.getDiamater() / 2), 2)));
+                sh.Play();
+                play(frequency);
             }
 
-            double areaOverLap = Maths.FindAreaOverlappingCircles(circumcircle,sh.GetCircumCircle());
-            double frequency = circumcircle.Area() / areaOverLap;
-            play(frequency);
-            double pDiamater = sh.getDiamater();
-            frequency = pDiamater>diamater? pDiamater/diamater:diamater/pDiamater;
-            play(frequency);
+            for (ShapeFormula sh : connectedShapes) {
+                double distance = Maths.CircleDistance(circumcircle, sh.GetCircumCircle());
+
+
+                double areaOverLap = Math.abs(Maths.FindAreaOverlappingCircles(circumcircle, sh.GetCircumCircle()));
+                if(areaOverLap > 0) {
+                    double frequency = circumcircle.Area() / areaOverLap;
+                    play(frequency);
+                }
+                double pDiamater = sh.getDiamater();
+                double frequency = pDiamater > diamater ? pDiamater / diamater : diamater / pDiamater;
+                play(frequency);
+            }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
     }
 
     private void play(double frequency ){
 
-        Notes note = DiatonicScale.findNote(frequency);
-        Sound.AddNote(note);
+        try {
+            Notes note = DiatonicScale.findNote(frequency);
+            Sound.AddNote(note);
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
 
     }
 
@@ -885,10 +949,16 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     //addshape to connectedshapes if it's circumcircle is not completly with in the circumcircle of this shape,
     // but has at least one point that is partially connected to or inside this shape
     public void AddConnectedShape(ShapeFormula sf){
+
                     connectedShapes.add(sf);
+        for(ShapeFormula sfi: inside){
+            if(Maths.CirclesOverlap(sf.GetCircumCircle(),sfi.GetCircumCircle()).first){
+                sfi.AddConnectedShape(sf);
+            }
+        }
 
     }
-    //returns vector of shapes that are connected to, but not completly inside of this shape
+    //returns vector of shapes that are connected to, but not completely inside of this shape
     public Vector<ShapeFormula> GetConnectedShapes(){
         return connectedShapes;
 

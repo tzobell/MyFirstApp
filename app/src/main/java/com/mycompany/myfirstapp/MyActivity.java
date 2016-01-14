@@ -87,7 +87,7 @@ public class MyActivity extends ActionBarActivity {
                    mCustomDrawableView.SetShape(ShapeType.hexagon);
                    result = true;
                    break;
-               case R.id.heptagon:
+              /* case R.id.heptagon:
                    menuitem.setIcon(item.getIcon());
                    mCustomDrawableView.SetShape(ShapeType.heptagon);
                    result = true;
@@ -116,7 +116,7 @@ public class MyActivity extends ActionBarActivity {
                    menuitem.setIcon(item.getIcon());
                    mCustomDrawableView.SetShape(ShapeType.dodecagon);
                    result = true;
-                   break;
+                   break;*/
                case R.id.clear:
                    mCustomDrawableView.Clear();
                    result = true;

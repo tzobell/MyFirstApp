@@ -17,6 +17,12 @@ public class PointFormula implements Formula {
         return new Pair<Float,Float>(x,y);
     }
 
+    public Pair<Float,Float> GetBasicClosestPoint(float x,float y){
+        return new Pair<Float,Float>(x,y);
+    }
+    public Pair<Float,Float> GetBasicClosestPoint(Pair<Float,Float> p){
+        return new Pair<Float,Float>(x,y);
+    }
     public Formula[] GetGoldenPoints(){
         Formula[] f = {this};
         return f;

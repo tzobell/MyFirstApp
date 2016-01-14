@@ -144,47 +144,85 @@ public final class Maths {
     }
 
 
+    //returns pair of boolean values, first value is true/falst for if and only if circles partially overlap,
+    // second value true if circles completly overlap (one circle is completly with in or equal to the other circle)
+public static Pair<Boolean,Boolean> CirclesOverlap(CircleFormula a, CircleFormula b) {
+    boolean overlap = false;
+    Pair<Float, Float> A = new Pair<>(a.h, a.k);
+    Pair<Float, Float> B = new Pair<>(b.h, b.k);
+    double d = Math.abs(GetDistance(A, B));
+    return CirclesOverlap(a, b, d);
+}
+
+    ///returns pair of boolean values, first value is true/falst for if and only if circles partially overlap,
+    // second value true if circles completly overlap (one circle is completly with in or equal to the other circle)
+    private static Pair<Boolean,Boolean> CirclesOverlap(CircleFormula a, CircleFormula b, double d) {
+        boolean partiallyOverlap = false;
+        boolean completlyOverlap = false;
+        if (a.radius < b.radius) {
+            CircleFormula temp = b;
+            b = a;
+            a = temp;
+        }
+        if (d < (a.radius + b.radius)) {
+            //if distance between center of a and center of b is less than radius of a - radius of b, then circle b is completely inside circle a
+            if (d < Math.abs(a.radius - b.radius)) {
+                completlyOverlap = true;
+                partiallyOverlap = false;
+
+            }
+            //else circles partially overlap
+            else {
+                completlyOverlap = false;
+                partiallyOverlap = true;
+            }
+        }
+        return new Pair<>(partiallyOverlap,completlyOverlap);
+    }
     //find the area of the overlapping sections of the two circles
     public static double FindAreaOverlappingCircles(CircleFormula a, CircleFormula b){
         double area = 0;
-            Pair<Float,Float> A = new Pair<>(a.h,a.k);
-            Pair<Float,Float> B = new Pair<>(b.h,b.k);
-            double d = Math.abs(GetDistance(A,B));//distance from center of circle a to center of circle c
-        if(d < (a.radius + b.radius)) {
-            if(a.radius < b.radius){
-                CircleFormula temp = b;
-                b = a;
-                a = temp;
-            }
-
+        try {
+            Pair<Float, Float> A = new Pair<>(a.h, a.k);
+            Pair<Float, Float> B = new Pair<>(b.h, b.k);
+            double d = Math.abs(GetDistance(A, B));//distance from center of circle a to center of circle c
+            Pair<Boolean,Boolean> overlap = CirclesOverlap(a,b,d);
+            if (overlap.first||overlap.second) {
             //if distance between center of a and center of b is less than radius of a - radius of b, then circle b is completely inside circle a
-            if(d < Math.abs(a.radius - b.radius)){
-                area = b.Area();
+                if (overlap.second) {
+                    area = b.Area();
+                }
+                //circles partially overlap
+                else {
+                    if (overlap.first) {
+                        //area of circle sector = (theta/2) * r^2
+                        //point C and D are the points at which circle a and b intersect
+                        //theta = angle CAD of triangle ACD
+                        //find theta
+                        //divide  triangle ACD into two right triangles ADG and AEG
+                        //cos = adjacent/hypotenuse
+                        //adjacent = d/2
+                        //hypotenuse = radius of circle a or line segment DA
+                        //cos(theta/2) = (d/2)/r => theta/2 = cox^-1(d/2r) => theta = 2cos^-1(d/2r)
+                        double thetaA = 2 * Math.acos(d / (2 * a.radius));
+                        //compute area of circle sector for circle a
+                        double ACDSector = (thetaA / 2) * a.radius * a.radius;
+                        //area of triangle = (r^2)/2 * sin(theta)
+                        double triangle_ACD_Area = .5 * Math.pow(a.radius, 2) * Math.sin(thetaA);
+                        double areasegmentA = ACDSector - triangle_ACD_Area;
+                        //repeat for circle b
+                        double thetaB = 2 * Math.acos(d / (2 * b.radius));
+                        double BCDSector = (thetaB / 2) * b.radius * b.radius;
+                        double triangle_BCD_Area = .5 * Math.pow(b.radius, 2) * Math.sin(thetaB);
+                        double areasegmentB = BCDSector - triangle_BCD_Area;
+                        area = areasegmentA + areasegmentB;
+                    }
+                }
             }
-            //circles partially overlap
-            else {
-                //area of circle sector = (theta/2) * r^2
-                //point C and D are the points at which circle a and b intersect
-                //theta = angle CAD of triangle ACD
-                //find theta
-                //divide  triangle ACD into two right triangles ADG and AEG
-                //cos = adjacent/hypotenuse
-                //adjacent = d/2
-                //hypotenuse = radius of circle a or line segment DA
-                //cos(theta/2) = (d/2)/r => theta/2 = cox^-1(d/2r) => theta = 2cos^-1(d/2r)
-                double thetaA = 2 * Math.acos(d / (2 * a.radius));
-                //compute area of circle sector for circle a
-                double ACDSector = (thetaA / 2) * a.radius * a.radius;
-                //area of triangle = (r^2)/2 * sin(theta)
-                double triangle_ACD_Area = .5 * Math.pow(a.radius, 2) * Math.sin(thetaA);
-                double areasegmentA = ACDSector - triangle_ACD_Area;
-                //repeat for circle b
-                double thetaB = 2 * Math.acos(d / (2 * b.radius));
-                double BCDSector = (thetaB / 2) * b.radius * b.radius;
-                double triangle_BCD_Area = .5 * Math.pow(b.radius, 2) * Math.sin(thetaB);
-                double areasegmentB = BCDSector - triangle_BCD_Area;
-                area = areasegmentA + areasegmentB;
-            }
+        }
+        catch (Exception e){
+            String z  = e.getMessage();
+            System.out.println(z);
         }
         return area;
     }

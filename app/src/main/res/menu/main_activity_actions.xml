@@ -38,7 +38,7 @@
             <item android:id="@+id/hexagon"
                 android:icon="@drawable/hexagon"
                 android:title="@string/hexagon"/>
-
+<!--
             <item android:id="@+id/heptagon"
                 android:icon="@drawable/heptagon"
                 android:title="@string/heptagon"/>
@@ -68,7 +68,7 @@
             <item android:id="@+id/dodecagon"
                 android:icon="@drawable/dodecagon"
                 android:title="@string/dodecagon"/>
-
+-->
             <item android:id="@+id/circle"
                 android:icon="@drawable/circle"
                 android:title="@string/circle"/>

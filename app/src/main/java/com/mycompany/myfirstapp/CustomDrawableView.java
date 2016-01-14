@@ -197,10 +197,16 @@ public class CustomDrawableView extends View {
 
     //play the sounds of the shapes
     public void Play(){
-        for(ShapeFormula sf:shapes){
-            sf.Play();
+        try {
+            for (ShapeFormula sf : shapes) {
+                sf.Play();
+            }
+            Sound.playAll();
         }
-        Sound.playAll();
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
     }
 
     //if f is an instance of ShapeFormula then try adding f to a shapeFormula in vector<ShapeFormula> shapes.
@@ -396,7 +402,7 @@ public class CustomDrawableView extends View {
     double distance = Double.POSITIVE_INFINITY;
     Pair<Float, Float> closest = new Pair<>(x, y);
     try {
-        if (thisshape != null && endset && test != startShape) {
+        if (thisshape != null && endset && !test.GetCircumCircle().equals(startShape.GetCircumCircle())) {
             float circleDistance = (float) Maths.CircleDistance(thisshape.GetCircumCircle(), test.GetCircumCircle());
             float predis = (float)Maths.CircleDistance(prevShape.GetCircumCircle(), test.GetCircumCircle());
             if(circleDistance <= 0){
@@ -435,7 +441,7 @@ public class CustomDrawableView extends View {
             ShapeFormula prevShape = endset?CreateShape(startx,starty,endx,endy,shape):null;
             double distance = Double.POSITIVE_INFINITY;
             for (int i = 0; i < shapes.size(); ++i) {
-                Pair<Float, Float> c = startset ? shapes.get(i).GetClosestPoint(startx, starty, x, y) : shapes.get(i).GetClosestPoint(x, y);
+                Pair<Float, Float> c = startset ? shapes.get(i).GetClosestPoint(startx, starty, x, y) : shapes.get(i).GetBasicClosestPoint(x, y);
                 double tempdis = Maths.GetDistance(p, c);
                 if (tempdis < distance) {
                     closest = c;
@@ -560,7 +566,9 @@ public class CustomDrawableView extends View {
         Pair<Float,Float> closest = new Pair<>(x,y);
         if (shapes.size() > 0) {
 
+
             LineFormula lf = new LineFormula(startx, starty, x, y);
+
             double diamater = Maths.GetDistance(startx, starty, x, y);
             double shapeDiamater = startShape != null ? startShape.getDiamater() : diamater;
             double freq = shapeDiamater > diamater ? shapeDiamater / diamater : diamater / shapeDiamater;
@@ -571,6 +579,11 @@ public class CustomDrawableView extends View {
                 newDiamater = shapeDiamater * notefreq;
             }
             closest = lf.findDistantPoint(newDiamater);
+            Pair<Float,Float> samesize = lf.findDistantPoint(startShape.getDiamater());
+            double distance = Maths.GetDistance(x,y,closest);
+            if(Maths.GetDistance(x,y,samesize) <= distance){
+                closest = samesize;
+            }
         }
         return closest;
     }
@@ -643,7 +656,7 @@ public class CustomDrawableView extends View {
             closestX = closestinfo.second.first;
             closestY = closestinfo.second.second;
             closest = new Pair<>(closestX,closestY);
-            boolean endInBounds = startShape.inBounds(x, y);
+            boolean endInBounds = startShape!=null?startShape.inBounds(x, y):false;
             if(!startset){
                 startInBounds = closestinfo.first!=null?closestinfo.first.inBounds(x,y):false;
             }

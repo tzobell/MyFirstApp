@@ -43,6 +43,9 @@ public interface ShapeFormula extends Formula {
     public Pair<Float,Float> GetClosestPoint(float xstart,float ystart,Pair<Float,Float> p );
     public Pair<Float,Float> GetClosestPoint(Pair<Float,Float> pstart,float x,float y );
 
+
+
+
    // public void SetParent(ShapeFormula sf);
 
     public double getDiamater();

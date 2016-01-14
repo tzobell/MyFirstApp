@@ -57,8 +57,6 @@ public class LineFormula implements Formula {
             int l = gpoints.length % 2 != 0 ? gpoints.length : gpoints.length + 1;
             points = new PointFormula[(2*l)+1];
             createTree(0, 0, l - 1, gpoints);
-            int abc = 123;
-            abc+=1;
         }
         catch (Exception e){
             int abc = 123;
@@ -172,6 +170,17 @@ public class LineFormula implements Formula {
 
     public Pair<Float,Float> GetClosestValue(Float X,Float Y){
         return GetClosestValue(X, Y, true);
+    }
+
+
+    //returns the closest point to x,y out of the starting and ending point of the line
+    public Pair<Float,Float> GetBasicClosestPoint(float x,float y){
+        double distanceStart = Maths.GetDistance(x,y,startx,starty);
+        double distanceEnd = Maths.GetDistance(x,y,endx,endy);
+        return distanceStart>distanceEnd?new Pair<>(endx,endy):new Pair<>(startx,starty);
+    }
+    public Pair<Float,Float> GetBasicClosestPoint(Pair<Float,Float> p){
+        return GetBasicClosestPoint(p.first,p.second);
     }
     //returns the closest (x,y) value on the line between (startx,starty),(endx,endy) to point (X,Y)
     public Pair<Float,Float> GetClosestValue(float X,float Y, boolean withInSegment){
