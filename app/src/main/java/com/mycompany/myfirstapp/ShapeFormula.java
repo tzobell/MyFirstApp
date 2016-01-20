@@ -58,6 +58,8 @@ public interface ShapeFormula extends Formula {
     //public Pair<Float,Float> getEndForArea(Pair<Float,Float> start,double area);
     public Vector<ShapeFormula> GetInsideShapes();
     public CircleFormula GetCircumCircle();
+
+    public CircleFormula GetTangentCircle();
     public void AddConnectedShape(ShapeFormula sf);
     public Vector<ShapeFormula> GetConnectedShapes();
     //public void Play();

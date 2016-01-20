@@ -8,7 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 
 
-
+import android.graphics.drawable.shapes.Shape;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -112,7 +112,6 @@ public class CustomDrawableView extends View {
             canvas.save();
             canvas.scale(scaleFactor, scaleFactor, this.detector.getFocusX(), this.detector.getFocusY());
             canvas.drawBitmap(bm, 0, 0, mBitmapPaint);
-
             mDrawable.draw(canvas);
             canvas.restore();
         }
@@ -123,11 +122,9 @@ public class CustomDrawableView extends View {
 
     //redraw the canvas except for the previous movement event.
     public void Undo() {
-
         try {
              if (shapeHistory.size() > 0) {
                 undoing = true;
-
                 Clear();
                 ShapeSummary ls = shapeHistory.get(shapeHistory.size() - 1);
                 Formula f = ls.sf;
@@ -150,7 +147,6 @@ public class CustomDrawableView extends View {
 
                 }
                 shapeHistory.remove(shapeHistory.size() - 1);
-
                 for (int i = 0; i < shapeHistory.size(); ++i) {
                     ShapeSummary ss = shapeHistory.get(i);
                     shape = ss.shape;
@@ -160,7 +156,6 @@ public class CustomDrawableView extends View {
                     draw();
                     newCanvas();
                     invalidate();
-
                 }
             }
         }
@@ -222,20 +217,14 @@ public class CustomDrawableView extends View {
             for(ShapeFormula sfi:intersectShapes){
                 sf.AddConnectedShape(sfi);
             }
-
-
             for(int i = 0; i < shapes.size(); ++i){
                 Pair<Boolean,ShapeFormula> bs = shapes.get(i).AddShape(sf);
                 if(bs.first ){
                     added = true;
                     i = shapes.size();
-                   // if(startShape!=null && startShape ==bs.second){
-                    //    sf.SetParent(null);
-                  //  }
                     insideShape = bs.second;
                 }
             }
-
             if(!added){
                 shapes.add(sf);
             }
@@ -252,12 +241,12 @@ public class CustomDrawableView extends View {
 
     void newCanvas(boolean addShape){
         try {
+            Formula f = mDrawable.GetGoldenShape().GetFormula();
             if(!undoing && addShape) {
-                Formula f = mDrawable.GetGoldenShape().GetFormula();
                 AddShape(f);
             }
-            mDrawable.draw(can);
             ShapeType st = shape;
+            mDrawable.draw(can);
             shape = ShapeType.circle;
             shape = st;
             setStart(0, 0);

@@ -420,7 +420,7 @@ public class LineFormula implements Formula {
     //if the line has a slope, then return Pair(p.first,y=f(p.first))
     //if x is constant then returns Pair(constant x value, p.second)
     //if y is constant then returns Pair(p.first,constant y value)
-    private Pair<Float,Float> FoX(float x, float y) {
+    public Pair<Float,Float> FoX(float x, float y) {
         return FoX(new Pair<Float, Float>(x, y));
     }
 
@@ -451,6 +451,8 @@ public class LineFormula implements Formula {
     }
 
     //find point on line(start,end) that is distance away from start
+    //if inrange is true, find point that is distance away from (startx,starty) going towards (endx,endy)
+    //if inrange is false, fine point that is distance away from (startx,starty) going away from (endx,endy);
     public Pair<Float,Float> findDistantPoint(double distance ){
         return findDistantPoint(distance,true);
     }

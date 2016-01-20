@@ -12,20 +12,35 @@ public class PolyShapeFormula implements ShapeFormula {
     float cy, cx,startx,starty,endx,endy,midx,midy;
     private final int shapepoints;
     Pair<Float, Float> points[];
+    //vector that contains lines that make up the perimeter of the polygon
     Vector<LineFormula> shapeLines;
+
+
+    //vector that contains the perimeter lines and the lines that connect a golden point on one perimeter line of the polygon
+    // to a golden point an another perimeter line of the polygon
     Vector<LineFormula> connectingLines;
 
+    //contains all the maint points and golden points for the lines in connectingLines and shapeLines
     Vector<Formula> goldenP;
+
+    //Vector that holds ShapeFormulas that are inside of this shape
     Vector<ShapeFormula> inside;
 
+    //vector to hold the ShapeFormula's that this shape is connected to/intersects with
     Vector<ShapeFormula> connectedShapes;
     Vector<LineFormula> centerConnecting;
+    //circle that all the keypoints of the polygon lie on
     private CircleFormula circumcircle;
+    //circle that touches the center of each of the perimeter lines in the polygon
     private CircleFormula incircle;
 
-    float gpoints[];
+
+    //contains all the points in goldenP but with each x and y value at its own index int the vector
+    //so instead of index(i) == Pair<Float,FLoat>(x,y), we have index(i) == x and index(i+1) == y
     Vector<Float> gpts;
-    Vector<Pair<Float,Float>> pairgpts;
+    //array of Vector<> gpts
+    float gpoints[];
+
     private ShapeFormula parent;
 
 
@@ -43,7 +58,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     goldenP = new Vector<>();
     shapeLines = new Vector<>();
     gpts = new Vector<>();
-    pairgpts = new Vector<>();
+
     connectingLines = new Vector<>();
     centerConnecting= new Vector<>();
     gpoints =null;// shapepoints%2==0?new float[shapepoints + (((shapepoints-1)*shapepoints))]:new float[(shapepoints + (((shapepoints-1)*shapepoints)))-1];
@@ -61,8 +76,9 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
             float circumcircleRadius = (float) (getApothem() / (Math.cos(Math.PI / points.length)));
             double sl = getSideLength();
             float incircleRadius = (float) (sl / (2 * Math.tan(Math.PI / points.length)));
-            circumcircle = new CircleFormula(cx, cy, circumcircleRadius,false);
-            incircle = new CircleFormula(cx, cy, incircleRadius,false);
+            circumcircle = new CircleFormula(cx, cy, circumcircleRadius,false,true);
+            incircle = new CircleFormula(cx, cy, incircleRadius,false,false);
+            circumcircle.AddShape(incircle);
             //inside.add(incircle);
             goldenP.add(circumcircle);
 
@@ -141,6 +157,8 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         return new Pair<>(endx,endy);
     }
 
+    //returns the radius for the circumcircle of this shape
+    //adjusts the midx,midy value for odd number polygons so that (endx,endy) lies on the bottom line of the polygon
     private  double DetermineRadius(double startangle){
         double r;
         //radius = square root((y^2)+(x^2))/2
@@ -149,6 +167,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         if(shapepoints%2 != 0) {
             try {
                 //if odd number polygon we want bottom line to cross through endx,endy.
+                //
                 double pent = (2 * Math.PI) / shapepoints;
                 int i = ((shapepoints + 1) / 2) - 1;
                 double angle = startangle + (pent * i);
@@ -178,19 +197,23 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         }
         return r;
     }
-    //public void SetParent(ShapeFormula sf){
-    //    parent = sf;
-   // }
+
     public double getDiamater(){
         return circumcircle.getDiamater();
     }
     public CircleFormula GetCircumCircle(){
         return circumcircle;
     }
+    public CircleFormula GetTangentCircle(){
+        return circumcircle.GetTangentCircle();
+    }
     public CircleFormula getIncircle(){
         return incircle;
     }
+
     //find the end point of the polygon
+    //if polygon has even number of points, then endpoint is just the point opposite from the point at (startx,starty)
+    //if polygon has odd number of points, then the endpoint is the midpoint of the line at the bottom of the polygon
     private Pair<Float, Float> getEnd() {
         Pair<Float, Float> d;
         int i = (points.length + 1) / 2;
@@ -227,13 +250,9 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         }
     }
 
-    private int initArrays() {
-        int abc = 123;
-        abc+=1;
+    //Initializes vectors and arrays used in this class
+    private void initArrays() {
         try {
-
-            int gsize = 0;
-            String info = "";
             for (int i = 0; i < points.length; ++i) {
                 LineFormula lf;
                 Side side;
@@ -291,7 +310,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         }
 
 
-        return abc;
+
     }
 
 
@@ -349,7 +368,28 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     }
 
 
+    //find the point that is the bestfit on the circumcircle
+    private Pair<Float,Float> GetClosestToCircumCircle(float X, float Y, boolean lockKeyPoints, boolean startpoints, Float xstart,Float ystart) {
+        Pair<Float, Float> point = new Pair<>(X, Y);
+        if(lockKeyPoints) {
+            double distance = Double.POSITIVE_INFINITY;
+            for (Pair<Float, Float> p : points) {
+                double tempdistance = Maths.GetDistance(p, X, Y);
+                if (tempdistance < distance) {
+                    point = p;
+                    distance = tempdistance;
+                }
+            }
 
+            point = comparePointToCircle(X, Y, point, circumcircle, startpoints, xstart, ystart);
+        }
+        else{
+            point = startpoints?circumcircle.GetClosestPoint(xstart,ystart,X,Y,false,false):circumcircle.GetClosestPoint(X,Y,false,false);
+        }
+
+        return point;
+
+    }
     public Pair<Float,Float> GetClosestToCircumCircle(Pair<Float,Float> pstart,Pair<Float,Float> p ){
         return GetClosestToCircumCircle(pstart.first, pstart.second, p.first, p.second);
     }
@@ -375,32 +415,12 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     public Pair<Float,Float> GetClosestToCircumCircle(float x,float y,boolean lockintoKeyPoints){
         return GetClosestToCircumCircle(x,y,lockintoKeyPoints,false, null,null);
     }
-    //find the point that is the bestfit on the circumcircle
-    private Pair<Float,Float> GetClosestToCircumCircle(float X, float Y, boolean lockKeyPoints, boolean startpoints, Float xstart,Float ystart) {
-        Pair<Float, Float> point = new Pair<>(X, Y);
-        if(lockKeyPoints) {
-            double distance = Double.POSITIVE_INFINITY;
-            for (Pair<Float, Float> p : points) {
-                double tempdistance = Maths.GetDistance(p, X, Y);
-                if (tempdistance < distance) {
-                    point = p;
-                    distance = tempdistance;
-                }
-            }
 
-            point = comparePointToCircle(X, Y, point, circumcircle, startpoints, xstart, ystart);
-        }
-        else{
-            point = startpoints?circumcircle.GetClosestPoint(xstart,ystart,X,Y,false):circumcircle.GetClosestPoint(X,Y,false);
-        }
-
-        return point;
-
-    }
-    public Pair<Float,Float> GetClosestToPerimeter(float x,float y){
+    //returns point on the perimeter that is closest to point (x,y)
+    public Pair<Float,Float> GetClosestToPerimeter(float xstart,float ystart,float x,float y){
         return GetClosestPoint(x, y, shapeLines);
     }
-    public Pair<Float,Float> GetClosestToPerimeter(float xstart,float ystart,float x,float y){
+    public Pair<Float,Float> GetClosestToPerimeter(float x,float y){
         return GetClosestPoint(x, y, shapeLines);
     }
     public Pair<Float,Float> GetClosestToPerimeter(Pair<Float,Float> p){
@@ -413,18 +433,11 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         return GetClosestToPerimeter(xstart, ystart, p.first, p.second);
     }
 
-    public Pair<Boolean,LineFormula> isKeyPoint(Pair<Float,Float> p){
-        return isKeyPoint(p.first, p.second);
-    }
-    public Pair<Boolean,LineFormula> isKeyPoint(float x, float y){
-        return isKeyPoint(x, y, false, null, null);
-    }
 
-    public Pair<Boolean,LineFormula> isKeyPoint(float x,float y,float xend,float yend){
-
-        return isKeyPoint(x,y,true,xend,yend);
-    }
-    public Pair<Boolean,LineFormula> isKeyPoint(float x,float y,boolean end,Float xend,Float yend){
+    //returns true if point (x,y) is one of the key points
+    //and returns the LineFormula out of the perimeter lines that the point (x,y) is closest to if end == false
+    //else returns the LineFormula out of the perimeter lines that the point (xend,yend) is closest to.
+    private Pair<Boolean,LineFormula> isKeyPoint(float x,float y,boolean end,Float xend,Float yend){
 
         Vector<LineFormula> keyPointLines = new Vector<>();
         boolean isKey = false;
@@ -445,13 +458,17 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
                 if(!isKey){
                     double tempdis = Maths.GetDistance(lf.GetClosestValue(x,y),x,y);
                     int senario = tempdis < distance?0:tempdis==distance?1:2;
+
                     switch (senario){
+                      //tempdis < distance
                         case 0:
                             keyPointLines.clear();
                             distance = tempdis;
+                        //tempdis == distance
                         case 1:
                             keyPointLines.add(lf);
                             break;
+                        //tempdis > distance
                         case 2:
                             break;
                     }
@@ -477,23 +494,37 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
 
         return new Pair<>(isKey,line);
     }
+    public Pair<Boolean,LineFormula> isKeyPoint(Pair<Float,Float> p){
+        return isKeyPoint(p.first, p.second);
+    }
+    public Pair<Boolean,LineFormula> isKeyPoint(float x, float y){
+        return isKeyPoint(x, y, false, null, null);
+    }
+    public Pair<Boolean,LineFormula> isKeyPoint(float x,float y,float xend,float yend){
+
+        return isKeyPoint(x,y,true,xend,yend);
+    }
+
     public Pair<Float,Float> GetClosestPoint(float xstart,float ystart,float X,float Y) {
-
-
         return GetClosestPoint(X, Y, true, xstart, ystart);
     }
 
 
-    //test if point on circle is closer than one passed
+    //compare Pair point to the closest point on testCircle to (X,Y)
+    //if the distance between (X,Y,point) is less than the distance between the closest point on test circle to (X,Y) then return point as is
+    //else if distance from (X,Y) to closest point on testCircle is less than distance between (X,Y,point)
+    //see if point is a key point
+    //if point is a key point see if the distance from (X,Y) to closest point on testCircle is less then the threshold
+    //if distance is less then the threshold then set point equal to the closest point to (X,Y) on test circle, else leave point as is
+    //else if point is not a keypoint then set point equal to the closest point to (X,Y) on test circle
+    //then return point
     private Pair<Float,Float> comparePointToCircle(Float X,Float Y, Pair<Float,Float> point, CircleFormula testCircle, boolean startpoints,Float xstart,Float ystart){
         double distance = Maths.GetDistance(X, Y, point);
-        Pair<Float, Float> tempPoint;
-        tempPoint = startpoints?testCircle.GetClosestPoint(xstart, ystart, X, Y): testCircle.GetClosestPoint(X,Y);
+        Pair<Float, Float> tempPoint = startpoints?testCircle.GetClosestPoint(xstart, ystart, X, Y): testCircle.GetClosestPoint(X,Y);
         double tempdistance = Maths.GetDistance(X, Y, tempPoint);
 
         if (tempdistance < distance) {
             Pair<Boolean,LineFormula> blf = isKeyPoint(point);
-
             switch (blf.first?1:0){
                 //if Pair<Float,Float> point is one the key points of the polygon then we want to "lockin" to that point unless distance is above a threshold
                 case 1:
@@ -514,7 +545,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     }
 
 
-    //don't include golden points of connecting lines when searching for the closest point.
+    //search for the closest point out of the perimeter lines, circumcircle, and in circle to the point (x,y)
     public Pair<Float,Float> GetBasicClosestPoint(float x,float y){
         Pair<Float, Float> point = new Pair<>(cx, cy);
         CircleFormula testCircle = incircle;
@@ -523,12 +554,10 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
             ShapeFormula sf = FindCircumShape(new Pair<>(x, y));
             int out = sf == null||sf==circumcircle ? 0 : sf == this||sf==incircle ? 1 : 2;
             switch (out) {
-
                 //sf == null which mean (X,Y) lies out of bounds of this shape
                 case 0:
                     //set testCircle to circumcircle so that only the circumscribed circle of the polygon is searched for, for the closest point
                     point = GetClosestToCircumCircle(x,y);
-
                     //sf == this
                 case 1:
 
@@ -556,6 +585,10 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     public Pair<Float,Float> GetBasicClosestPoint(Pair<Float,Float> p){
         return GetBasicClosestPoint(p.first,p.second);
     }
+
+
+    //find the closest point to (X,Y) in or on the shape
+    //if startpoints == true then (xstart,ystart) will be used when finding the closest point to (X,Y) on the test circle
     private Pair<Float,Float> GetClosestPoint(float X, float Y, boolean startpoints, Float xstart,Float ystart){
         Pair<Float, Float> point = new Pair<>(cx, cy);
         CircleFormula testCircle = incircle;
@@ -564,7 +597,6 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
             ShapeFormula sf = FindCircumShape(new Pair<>(X, Y));
             int out = sf == null||sf==circumcircle ? 0 : sf == this||sf==incircle ? 1 : 2;
             switch (out) {
-
                 //sf == null which mean (X,Y) lies out of bounds of this shape
                 case 0:
                     //set lines for shapeLines so that only the perimeter lines are searched for, for the closest point
@@ -595,6 +627,8 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     public Pair<Float, Float> GetClosestPoint(float X, float Y) {
        return GetClosestPoint(X,Y,false,null,null);
     }
+
+
     public Pair<Float,Float> GetClosestPoint(Pair<Float,Float> p){
         return GetClosestPoint(p.first, p.second);
     }
@@ -613,6 +647,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
 
 
 
+    //find and return the point out of the points on the LineFormula's in the Vector<> lines that is closest to the point (X,Y)
     private Pair<LineFormula,Pair<Float, Float>> GetClosestPointLine(float X, float Y, Vector<LineFormula> lines) {
         Pair<Float, Float> point;
         LineFormula lf = new LineFormula(cx, cy, cx, cy);
@@ -663,28 +698,8 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     }
 
 
-    //find the end point of a hypothetical shape with the same number of points as this shape 
-    // and the same starting point as this shape that has the area passed to the function
-    /*public Pair<Float,Float> getEndForArea(Pair<Float,Float> start,double area){
-        return getEndForArea(area);
-    }   
-    
-    public Pair<Float,Float> getEndForArea(double area){
-        int n = points.length;
-        Pair<Float,Float> end = getEnd();
-        Pair<Float,Float> start = getStart();
-        double height = Maths.GetDistance(start, end);
-        double s =getSideLength();
-        double p = n*s;
-        double  apothem =getApothem();
-        double oarea = (apothem*p)/2;
-        double newS = (2*oarea)/(n*apothem);
-        double newHeight = (newS*height)/s;
-
-        return  Maths.findDistantPoint(end, start, newHeight, false);
 
 
-    }*/
 
     //return the apothem for this shape
     public double getApothem(){
@@ -695,12 +710,9 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     public double getSideLength(){
         return   Maths.GetDistance(points[0], points[1]);
     }
-
-
     public boolean inCircumCircle(Pair<Float,Float> p){
         return circumcircle.inBounds(p);
     }
-
     public boolean inCircumCircle(float x, float y){
         return circumcircle.inBounds(x, y);
     }
@@ -731,8 +743,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     }
     //determine if the shape passed is inside this shape
     public boolean inBounds(Formula shape){
-        boolean in = true;
-        in = circumcircle.inBounds(shape);
+        boolean  in = circumcircle.inBounds(shape);
         /*Pair<Float,Float>[] kp = shape.GetKeyPoints();
         try {
             for (int i = 0; i < kp.length; ++i) {
@@ -796,16 +807,17 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     }
 
 
-    //if shape is completly with in this shape then add the shape to this shape and return true, 
+    //if shape is completely with in this shape then add the shape to this shape and return true,
     //other wise do not add shape to this shape and return false
     public Pair<Boolean,ShapeFormula> AddShape(ShapeFormula shape){
         Pair<Boolean,ShapeFormula> bs = new Pair<>(false,null);
-        if(Math.abs(shape.GetCircumCircle().h - circumcircle.h)<=.1 && Math.abs(shape.GetCircumCircle().k -circumcircle.k)<=.1 && Math.abs(shape.GetCircumCircle().radius - circumcircle.radius)<=.1){
+       /* if(Math.abs(shape.GetCircumCircle().h - circumcircle.h)<=.1 && Math.abs(shape.GetCircumCircle().k -circumcircle.k)<=.1 && Math.abs(shape.GetCircumCircle().radius - circumcircle.radius)<=.1){
             bs = new Pair<>(false,null);
         }
-        boolean in = inBounds(shape);
+        boolean in = inBounds(shape);*/
         try {
-            if (in ) {
+            bs = circumcircle.AddShape(shape);
+            /*if (in ) {
                 boolean inshape = false;
                 for (int i = 0; i < inside.size(); ++i) {
                     bs = inside.get(i).AddShape(shape);
@@ -831,7 +843,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
                     }
                     inside.add(shape);
                 }
-            }
+            }*/
         }
         catch (Exception e){
             String a  = e.getMessage();
@@ -840,7 +852,8 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         return bs;
     }
     public void RemoveShape(ShapeFormula shape){
-        if(shape == parent){
+        circumcircle.RemoveShape(shape);
+       /* if(shape == parent){
             parent = null;
         }
         else{
@@ -856,17 +869,20 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
                     i = size;
                 }
             }
-        }
+        }*/
     }
     public Vector<ShapeFormula> GetInsideShapes(){
-        return inside;
+       // return inside;
+        return circumcircle.GetInsideShapes();
     }
     //note the play is the frequency = area(this)/area(shapes inside this shape)
     //note the play is the frequency = area(this)/area(shapes inside this shape)
     public void Play() {
 
         try {
-            double diamater = this.getDiamater();
+
+        circumcircle.Play();
+          /*  double diamater = this.getDiamater();
 
             double area = circumcircle.Area();
             double f = area / incircle.Area();
@@ -881,8 +897,6 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
 
             for (ShapeFormula sh : connectedShapes) {
                 double distance = Maths.CircleDistance(circumcircle, sh.GetCircumCircle());
-
-
                 double areaOverLap = Math.abs(Maths.FindAreaOverlappingCircles(circumcircle, sh.GetCircumCircle()));
                 if(areaOverLap > 0) {
                     double frequency = circumcircle.Area() / areaOverLap;
@@ -891,7 +905,7 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
                 double pDiamater = sh.getDiamater();
                 double frequency = pDiamater > diamater ? pDiamater / diamater : diamater / pDiamater;
                 play(frequency);
-            }
+            }*/
         }
         catch (Exception e){
             String a  = e.getMessage();
@@ -949,18 +963,20 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     //addshape to connectedshapes if it's circumcircle is not completly with in the circumcircle of this shape,
     // but has at least one point that is partially connected to or inside this shape
     public void AddConnectedShape(ShapeFormula sf){
+        circumcircle.AddConnectedShape(sf);
 
-                    connectedShapes.add(sf);
+                    /*connectedShapes.add(sf);
         for(ShapeFormula sfi: inside){
             if(Maths.CirclesOverlap(sf.GetCircumCircle(),sfi.GetCircumCircle()).first){
                 sfi.AddConnectedShape(sf);
             }
-        }
+        }*/
 
     }
     //returns vector of shapes that are connected to, but not completely inside of this shape
     public Vector<ShapeFormula> GetConnectedShapes(){
-        return connectedShapes;
+        return circumcircle.GetConnectedShapes();
+        //return connectedShapes;
 
     }
 
