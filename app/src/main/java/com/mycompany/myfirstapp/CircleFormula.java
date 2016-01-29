@@ -494,7 +494,7 @@ public class CircleFormula implements ShapeFormula {
     }
     //if ShapeFormula shape is in the Vector<> connectedShapes, then remove it from that vector
     private void RemoveShapeConnecting(ShapeFormula shape){
-        int size = inside.size();
+        int size = connectedShapes.size();
         try {
             for (int i = 0; i < size; ++i) {
                 if (connectedShapes.get(i) == shape) {

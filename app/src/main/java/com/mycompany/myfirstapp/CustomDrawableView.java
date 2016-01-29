@@ -154,8 +154,8 @@ public class CustomDrawableView extends View {
                 //mDrawable.draw(can);
                 draw();
                 mDrawable.gs.DrawCircumCircle(true);
-                newCanvas();
                 invalidate();
+                newCanvas(false);
             }
         }
 
@@ -246,8 +246,6 @@ public class CustomDrawableView extends View {
     }
 
     //sets newcanvas to true to indicate to save canvas nex time onDraw is called.
-
-
     //Calls AddShape if addShape == true
     // draws shape in mDrawable onto Canvas Can then resets mDrawable for the next shape to be drawn
     void newCanvas(boolean addShape){
@@ -408,7 +406,7 @@ public class CustomDrawableView extends View {
     double distance = Double.POSITIVE_INFINITY;
     Pair<Float,Float> closest = new Pair<Float,Float>(x, y);
     try {
-        if (thisshape != null && endset && !test.GetCircumCircle().equals(startShape.GetCircumCircle())) {
+        if (thisshape != null && endset ) {
             float circleDistance = (float) Maths.CircleDistance(thisshape.GetCircumCircle(), test.GetCircumCircle());
             float predis = (float)Maths.CircleDistance(prevShape.GetCircumCircle(), test.GetCircumCircle());
             if(circleDistance <= 0){
@@ -417,7 +415,7 @@ public class CustomDrawableView extends View {
             if(predis <=0){
                 intersectPrevShapes.add(test);
             }
-            if (Math.abs(circleDistance) <= thresholdDistance) {
+            if (!test.GetCircumCircle().equals(startShape.GetCircumCircle()) && Math.abs(circleDistance) <= thresholdDistance) {
                 if (intersect == null || intersect.first > Math.abs(circleDistance)) {
                     if (Math.abs(predis) <= initialthresholdDistance) {
                         intersect = Math.abs(predis) < Math.abs(circleDistance) ? new Pair<>(Math.abs(predis), test) : new Pair<>(Math.abs(circleDistance), test);

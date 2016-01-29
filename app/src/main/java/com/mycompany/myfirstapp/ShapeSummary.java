@@ -28,7 +28,9 @@ public class ShapeSummary {
 
     public Vector<ShapeFormula> GetAssociatedShapes(){
         Vector<ShapeFormula> accociated = new Vector<>();
-        accociated.add(addedto);
+        if(addedto!=null) {
+            accociated.add(addedto);
+        }
         return accociated;
     }
 
