@@ -3,48 +3,41 @@ package com.mycompany.myfirstapp;
 import android.graphics.Point;
 import android.util.Pair;
 
-
+/*contains various static methods that perform mathmatical functions*/
 public final class Maths {
 
     public static final double PHI = (1 + Math.sqrt(5)) / 2;
 
-    public static double GetDistance(Point a, Point b) {
-        return GetDistance(a.x, a.y, b.x, b.y);
-    }
-
-    public static double GetDistance(Pair<Float, Float> a, Pair<Float, Float> b) {
-        return GetDistance(a.first, a.second, b.first, b.second);
-    }
-
+    //returns distance betweeing (x1,y1) and (x2,y2)
     public static double GetDistance(float x1, float y1, float x2, float y2) {
         return Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
     }
-
     public static double GetDistance(double x1, double y1, double x2, double y2) {
         return Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
     }
-
-    public static double GetDistance(float x1, float y1, Pair<Float, Float> b) {
+    public static double GetDistance(Point a, Point b) {
+        return GetDistance(a.x, a.y, b.x, b.y);
+    }
+    public static double GetDistance(Pair<Float,Float> a, Pair<Float,Float> b) {
+        return GetDistance(a.first, a.second, b.first, b.second);
+    }
+    public static double GetDistance(float x1, float y1, Pair<Float,Float> b) {
         return GetDistance(x1, y1, b.first, b.second);
     }
-
-    public static double GetDistance(Pair<Float, Float> a, float x2, float y2) {
+    public static double GetDistance(Pair<Float,Float> a, float x2, float y2) {
         return GetDistance(a.first, a.second, x2, y2);
     }
-
-
     public static double GetDistance(PointFormula a, float x2, float y2) {
         return GetDistance(a.x, a.y, x2, y2);
     }
-
     public static double GetDistance(float x1, float y1, PointFormula b) {
         return GetDistance(x1, y1, b.x, b.y);
     }
-
     public static double GetDistance(PointFormula a, PointFormula b) {
         return GetDistance(a.x, a.y, b.x, b.y);
     }
 
+    //returns true if testnumber between a and b or equal to a or b, else returns false
     public static boolean inRange(float a, float b, float testnumber) {
         boolean within = false;
         if (a > b) {
@@ -58,29 +51,20 @@ public final class Maths {
         return within;
     }
 
-    public static float closest(float a, float b, float testnumber) {
-        float difA = Math.abs(a - testnumber);
-        float difB = Math.abs(b - testnumber);
-        return difB < difA ? difB : difA;
-
-    }
-
-
-    public static Pair<Float, Float> findDistantPoint(Pair<Float, Float> start, Pair<Float, Float> end, double distance) {
+    public static Pair<Float,Float> findDistantPoint(Pair<Float,Float> start, Pair<Float,Float> end, double distance) {
         return findDistantPoint(start, end, distance, true);
     }
 
     //find point on line(start,end) that is distance away from start
-    public static Pair<Float, Float> findDistantPoint(Pair<Float, Float> start, Pair<Float, Float> end, double distance, boolean inrange) {
-
+    //if inrange is true, find point that is distance away from start going towards (endx,endy)
+    //if inrange is false, fine point that is distance away from start going away from (endx,endy);
+    public static Pair<Float,Float> findDistantPoint(Pair<Float,Float> start, Pair<Float,Float> end, double distance, boolean inrange) {
         LineFormula lf = new LineFormula(start.first, start.second, end.first, end.second);
-
-
         return lf.findDistantPoint(distance, inrange);
     }
 
     //determine if circle a and b intersect and if so the points at which they intersect
-    public static Pair<Boolean, Pair<Pair<Float, Float>, Pair<Float, Float>>> CirclesIntersectPoints(CircleFormula a, CircleFormula b) {
+    public static Pair<Boolean, Pair<Pair<Float,Float>, Pair<Float,Float>>> CirclesIntersectPoints(CircleFormula a, CircleFormula b) {
         boolean intersect = true;
         double y1 = Double.NaN;
         double y2 = Double.NaN;
@@ -145,7 +129,7 @@ public final class Maths {
             intersect = false;
         }
         // Pair<Boolean,Pair<Pair<Float,Float>,Pair<Float,Float>>>
-        return new Pair<>(intersect, new Pair<>(new Pair<>((float) x1, (float) y1), new Pair<>((float) x2, (float) y2)));
+        return new Pair<>(intersect, new Pair<>(new Pair<Float,Float>((float) x1, (float) y1), new Pair<Float,Float>((float) x2, (float) y2)));
     }
 
 
@@ -153,8 +137,8 @@ public final class Maths {
     // second value true if circles completly overlap (one circle is completly with in or equal to the other circle)
     public static Pair<Boolean, Boolean> CirclesOverlap(CircleFormula a, CircleFormula b) {
         boolean overlap = false;
-        Pair<Float, Float> A = new Pair<>(a.h, a.k);
-        Pair<Float, Float> B = new Pair<>(b.h, b.k);
+        Pair<Float,Float> A = new Pair<Float,Float>(a.h, a.k);
+        Pair<Float,Float> B = new Pair<Float,Float>(b.h, b.k);
         double d = Math.abs(GetDistance(A, B));
         return CirclesOverlap(a, b, d);
     }
@@ -189,8 +173,8 @@ public final class Maths {
     public static double FindAreaOverlappingCircles(CircleFormula a, CircleFormula b) {
         double area = 0;
         try {
-            Pair<Float, Float> A = new Pair<>(a.h, a.k);
-            Pair<Float, Float> B = new Pair<>(b.h, b.k);
+            Pair<Float,Float> A = new Pair<Float,Float>(a.h, a.k);
+            Pair<Float,Float> B = new Pair<Float,Float>(b.h, b.k);
             double d = Math.abs(GetDistance(A, B));//distance from center of circle a to center of circle c
             Pair<Boolean, Boolean> overlap = CirclesOverlap(a, b, d);
             if (overlap.first || overlap.second) {
@@ -232,16 +216,16 @@ public final class Maths {
         return area;
     }
 
-
+    //returns the distance between the circumferences of the two circles
     public static double CircleDistance(CircleFormula a, CircleFormula b) {
         return GetDistance(a.h, a.k, b.h, b.k) - (a.radius + b.radius);
     }
 
-
-    public static Pair<Float, Float> FindTriangleCenter(Pair<Float, Float> a, Pair<Float, Float> b, Pair<Float, Float> c) {
+    //returns the center point of the triangle
+    public static Pair<Float,Float> FindTriangleCenter(Pair<Float,Float> a, Pair<Float,Float> b, Pair<Float,Float> c) {
         float x = (a.first + b.first + c.first) / 3;
         float y = (a.second + b.second + c.second) / 3;
-        return new Pair<>(x, y);
+        return new Pair<Float,Float>(x, y);
     }
 
 
@@ -288,7 +272,7 @@ public final class Maths {
                     lf = new LineFormula(x1, y1, b.h, y1);
                 }
             }
-            Pair<Float, Float> secondTanPoint = lf.findDistantPoint(h);
+            Pair<Float,Float> secondTanPoint = lf.findDistantPoint(h);
             tangent = new LineFormula(x1, y1, secondTanPoint.first, secondTanPoint.second);
         }
         return tangent;

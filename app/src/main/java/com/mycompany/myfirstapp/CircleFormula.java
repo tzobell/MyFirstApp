@@ -24,46 +24,48 @@ public class CircleFormula implements ShapeFormula {
     // they would all lie on the same tangent line, and the two other circles would have a
     // distance (distance of circle centers - (radius*2)) of 0 from this circles tangent circle,
     // and like wise this circle would have a distance of 0 from the other circle's tangent circles
-    CircleFormula tangentcircle;
+    //CircleFormula tangentcircle;
 
     //constructor that creates a circle with a center at (h,k) and the radius passed. I
     // if hasGoldenCircles is true, then add to the vector goldencircles the appropriate circle for each of the notes in  DiatonicScale.
     // If hasTangent is true then initialize tangentCircle, other wise leave it null
     public CircleFormula(float h, float k, float radius, boolean hasGoldenCircles, boolean hasTangentCircle) {
-        this.h = h;
-        this.k = k;
-        this.radius = radius;
-        keyPoints = new Pair[4];
-        keyPoints[0] = new Pair<>(h + radius, k);
-        keyPoints[1] = new Pair<>(h - radius, k);
-        keyPoints[2] = new Pair<>(h, k + radius);
-        keyPoints[3] = new Pair<>(h, k - radius);
-        connectedShapes = new Vector<>();
-        goldencircles = new Vector<>();
-        inside = new Vector<>();
-        tangentcircle = null;
-        if(hasTangentCircle){
-
-            tangentcircle = new CircleFormula(h,k,(float)((4-(Math.sqrt(3)*radius))/(float)Math.sqrt(3)),false,false);
-        }
-        if (hasGoldenCircles) {
-
-            goldencircles.add(new PointFormula(h, k));
-            for (Notes note : DiatonicScale.notes) {
-                goldencircles.add(new CircleFormula(h, k, DiatonicScale.radiusCircle(note, radius), false));
+        try {
+            this.h = h;
+            this.k = k;
+            this.radius = radius;
+            keyPoints = new Pair[4];
+            keyPoints[0] = new Pair<>(h + radius, k);
+            keyPoints[1] = new Pair<>(h - radius, k);
+            keyPoints[2] = new Pair<>(h, k + radius);
+            keyPoints[3] = new Pair<>(h, k - radius);
+            connectedShapes = new Vector<>();
+            goldencircles = new Vector<>();
+            inside = new Vector<>();
+            //tangentcircle = null;
+            if (hasTangentCircle) {
+               // tangentcircle = new CircleFormula(h, k, (float) ((4 - (Math.sqrt(3) * radius)) / (float) Math.sqrt(3)), false, false);
             }
-
-            for (int n = 3; n < 13; ++n) {
-                if (n != 4 && n != 6) {
-                    double apothem = radius * (Math.cos((Math.PI / n)));
-                    double s = apothem * 2 * Math.tan((Math.PI / n));
-                    float gradius = (float) (s / (2 * Math.tan(Math.PI / n)));
-                    goldencircles.add(new CircleFormula(h, k, gradius, false,false));
+            if (hasGoldenCircles) {
+                goldencircles.add(new PointFormula(h, k));
+                for (Notes note : DiatonicScale.notes) {
+                    goldencircles.add(new CircleFormula(h, k, DiatonicScale.radiusCircle(note, radius), false));
                 }
+                for (int n = 3; n < 13; ++n) {
+                    if (n != 4 && n != 6) {
+                        double apothem = radius * (Math.cos((Math.PI / n)));
+                        double s = apothem * 2 * Math.tan((Math.PI / n));
+                        float gradius = (float) (s / (2 * Math.tan(Math.PI / n)));
+                        goldencircles.add(new CircleFormula(h, k, gradius, false, false));
+                    }
+                }
+            } else {
+                goldencircles.add(this);
             }
         }
-        else {
-            goldencircles.add(this);
+        catch (Exception e) {
+            String a = e.getMessage();
+            System.out.println(a);
         }
     }
 
@@ -84,7 +86,7 @@ public class CircleFormula implements ShapeFormula {
         return this;
     }
     public CircleFormula GetTangentCircle(){
-        return tangentcircle;
+        return this;//tangentcircle;
     }
 
     //return the point on the circles perimeter/circumference that is closest to the point (x,y)
@@ -136,10 +138,10 @@ public class CircleFormula implements ShapeFormula {
     }
 
     public Pair<Float,Float> GetStart(){
-        return new Pair<>(h+radius,k+radius);
+        return new Pair<Float,Float>(h+radius,k+radius);
     }
     public Pair<Float,Float> GetEnd(){
-        return new Pair<>(h-radius,k-radius);
+        return new Pair<Float,Float>(h-radius,k-radius);
     }
 
     //gets closest point to (x,y) that lies on the circumference or tangent circle
@@ -155,50 +157,57 @@ public class CircleFormula implements ShapeFormula {
     //else if(in==true) also search points/goldencircles that are within the circumference of this circle
     //if (searchTangent == true) then search the tangent circle for the closest point
     public Pair<Float,Float> GetClosestPoint(float x,float y, boolean in, boolean searchTangent){
-        float closestX;
-        float closestY;
-        double distance = Maths.GetDistance(x,y,h,k);
-        //in==false
-        if(!in) {
-            double den = (Math.sqrt((Math.pow((x-h),2)+Math.pow((y-k),2))));
-            closestX = (float) (h + (radius *((x-h)/den)));//(x > (radius + h) || x < (h - radius)) ? (x > radius + h) ? radius + h : radius - h : x;
-            closestY = (float) (k + (radius *((y-k)/den)));//((float) Math.sqrt((radius * radius) - Math.pow((closestX - h), 2)) * (y >= k ? 1.0f : -1.0f)) + k;
-            if(Maths.GetDistance(closestX,closestY,x,y) > distance){
-                closestX = h;
-                closestY = k;
-            }
-
-        }
-        //in==true
-        else{
-            Pair<Float, Float> point = new Pair<>(h, k);
-            for (Formula circle : goldencircles) {
-                Pair<Float, Float> temppoint = circle.GetClosestPoint(x, y);
-                double tempdis = Maths.GetDistance(x, y, temppoint);
-                if (tempdis < distance ) {
+        float closestX = x;
+        float closestY = y;
+        try {
+            double distance = Maths.GetDistance(x, y, h, k);
+            //in==false
+            if (!in) {
+                double den = (Math.sqrt((Math.pow((x - h), 2) + Math.pow((y - k), 2))));
+                closestX = (float) (h + (radius * ((x - h) / den)));//(x > (radius + h) || x < (h - radius)) ? (x > radius + h) ? radius + h : radius - h : x;
+                closestY = (float) (k + (radius * ((y - k) / den)));//((float) Math.sqrt((radius * radius) - Math.pow((closestX - h), 2)) * (y >= k ? 1.0f : -1.0f)) + k;
+                double tempdis = Maths.GetDistance(closestX, closestY, x, y);
+                if (tempdis > distance) {
+                    closestX = h;
+                    closestY = k;
                     distance = tempdis;
-                    point = temppoint;
                 }
             }
-            closestX = point.first;
-            closestY = point.second;
-        }
-
-        if(searchTangent && tangentcircle!=null){
-            Pair<Float,Float> tpoint = tangentcircle.GetClosestPoint(x,y,false,false);
-            if(Maths.GetDistance(tpoint,x,y)<distance){
-                closestX = tpoint.first;
-                closestY = tpoint.second;
+            //in==true
+            else {
+                Pair<Float, Float> point = new Pair<Float, Float>(h, k);
+                for (Formula circle : goldencircles) {
+                    Pair<Float, Float> temppoint = circle.GetClosestPoint(x, y);
+                    double tempdis = Maths.GetDistance(x, y, temppoint);
+                    if (tempdis < distance) {
+                        distance = tempdis;
+                        point = temppoint;
+                    }
+                }
+                closestX = point.first;
+                closestY = point.second;
             }
+
+          /*  if (searchTangent && tangentcircle != null) {
+                Pair<Float, Float> tpoint = tangentcircle.GetClosestPoint(x, y, false, false);
+                if (Maths.GetDistance(tpoint, x, y) < distance) {
+                    closestX = tpoint.first;
+                    closestY = tpoint.second;
+                }
+            }*/
         }
-        return new Pair<>(closestX,closestY);
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
+        return new Pair<Float,Float>(closestX,closestY);
     }
     public Pair<Float,Float> GetClosestPoint(float x,float y, boolean in){
-        return GetClosestPoint(x,y,in,in);
+        return GetClosestPoint(x, y, in, in);
     }
     public Pair<Float,Float> GetClosestPoint(float x,float y){
         boolean in = goldencircles.size()> 1&&inBounds(x,y);
-        return GetClosestPoint(x, y, in,true);
+        return GetClosestPoint(x, y, in, true);
     }
     public Pair<Float,Float> GetClosestPoint(Pair<Float,Float> p){
         return GetClosestPoint(p.first, p.second);
@@ -215,7 +224,7 @@ public class CircleFormula implements ShapeFormula {
         x = p.first;
         y = p.second;
 
-        return GetClosestPoint(x,y,in,searchTangent);
+        return GetClosestPoint(x, y, in, searchTangent);
     }
     public Pair<Float,Float> GetClosestPoint(float xstart,float ystart,float x,float y, boolean in){
         return GetClosestPoint(xstart,ystart,x,y,in,true);
@@ -245,34 +254,39 @@ public class CircleFormula implements ShapeFormula {
     // if shape is inside this circule then the note = this.area/shape.circumcircle.area
     // //if shape is connected to this circle then note = diamater1/diamater2, where diamater1 >= diamater2
     public void Play(){
-        double diamater = this.getDiamater();
-        double area = Area();
+        try {
+            double diamater = this.getDiamater();
+            double area = Area();
 
-        for(ShapeFormula sh:inside){
-
-            double frequency = area / (Math.PI * (Math.pow((sh.getDiamater() / 2), 2)));
-            sh.Play();
-            play(frequency);
-        }
-        for(ShapeFormula sh:connectedShapes){
-            double distance = Maths.CircleDistance(this, sh.GetCircumCircle());
-            double areaOverLap = Math.abs(Maths.FindAreaOverlappingCircles(this, sh.GetCircumCircle()));
-            if(areaOverLap > 0) {
-                double frequency = area / areaOverLap;
+            for (ShapeFormula sh : inside) {
+                double frequency = area / (Math.PI * (Math.pow((sh.getDiamater() / 2), 2)));
+                sh.Play();
                 play(frequency);
             }
-            double pDiamater = sh.getDiamater();
-            double frequency = pDiamater > diamater ? pDiamater / diamater : diamater / pDiamater;
-            play(frequency);
+            for (ShapeFormula sh : connectedShapes) {
+                double distance = Maths.CircleDistance(this, sh.GetCircumCircle());
+                double areaOverLap = Math.abs(Maths.FindAreaOverlappingCircles(this, sh.GetCircumCircle()));
+                if (areaOverLap > 0) {
+                    double frequency = area / areaOverLap;
+                    play(frequency);
+                }
+                double pDiamater = sh.getDiamater();
+                double frequency = pDiamater > diamater ? pDiamater / diamater : diamater / pDiamater;
+                play(frequency);
+            }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
     }
 
     private void play(double frequency ){
-        Notes note = DiatonicScale.findNote(frequency);
+        Pair<Notes,Octave> note = DiatonicScale.findOctave(frequency);
         Sound.AddNote(note);
     }
 
-    //key points don't mean anything is a circle so always return pair<>(false,null)
+    //key points don't mean anything is a circle so always return Pair<Float,Float>(false,null)
     public Pair<Boolean,LineFormula> isKeyPoint(float x,float y){
         return new Pair<>(false,null);
     }
@@ -287,7 +301,7 @@ public class CircleFormula implements ShapeFormula {
     //other wise the point (x,y) lies outside of the circumference of the circle
     public boolean inBounds(float x, float y){
         boolean isin = false;
-        double dis = Maths.GetDistance(x,y,h,k);
+        double dis = Maths.GetDistance(x, y, h, k);
         if(dis <= radius){
             isin = true;
         }
@@ -314,22 +328,27 @@ public class CircleFormula implements ShapeFormula {
     //the circle, else return false
     public boolean inBounds(Formula shape){
         boolean in = true;
-        if(shape instanceof ShapeFormula){
-            in = false;
-            CircleFormula csf = ((ShapeFormula) shape).GetCircumCircle();
-            double d = Math.abs(Maths.GetDistance(h,k,csf.h,csf.k));
-            if(d <= Math.abs(radius - csf.radius) && radius > csf.radius){
-                in = true;
-            }
-        }
-        else {
-            Pair<Float, Float>[] kp = shape.GetKeyPoints();
-            for (int i = 0; i < kp.length; ++i) {
-                if (!inBounds(kp[i])) {
-                    in = false;
-                    i = kp.length;
+        try {
+            if (shape instanceof ShapeFormula) {
+                in = false;
+                CircleFormula csf = ((ShapeFormula) shape).GetCircumCircle();
+                double d = Math.abs(Maths.GetDistance(h, k, csf.h, csf.k));
+                if (d <= Math.abs(radius - csf.radius) && radius > csf.radius) {
+                    in = true;
+                }
+            } else {
+                Pair<Float, Float>[] kp = shape.GetKeyPoints();
+                for (int i = 0; i < kp.length; ++i) {
+                    if (!inBounds(kp[i])) {
+                        in = false;
+                        i = kp.length;
+                    }
                 }
             }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
         return in;
     }
@@ -378,10 +397,9 @@ public class CircleFormula implements ShapeFormula {
         return sh;
     }
 
-
     //returns a Pair<Boolean,ShapeFormula>
     //if shape was added to this shape or one of the shapes in the vector inside
-    //then return pair<>(true,the shapeFormula that shape was added to) else return pair<>(false,null)
+    //then return Pair<Float,Float>(true,the shapeFormula that shape was added to) else return Pair<Float,Float>(false,null)
     public Pair<Boolean,ShapeFormula> AddShape(ShapeFormula shape){
         Pair<Boolean,ShapeFormula> bs = new Pair<>(false,null);
         try {
@@ -389,41 +407,46 @@ public class CircleFormula implements ShapeFormula {
             boolean in = inBounds(shape.GetCircumCircle());
             //if shape's circumcircle is inBounds of this shape
             if (in) {
-                boolean inshape = false;
-                //try adding shape to one of the ShapeFormula's in the Vector<> inside.
-                //if able to add shape to one of the ShapeFormula's in the Vector<> inside then set inshape to true
-                for (int i = 0; i < inside.size(); ++i) {
-                    bs = inside.get(i).AddShape(shape);
-                    if (bs.first) {
-                        inshape = true;
-                        i = inside.size();
-                    }
-
-                }
-
-                //if not able to add shape to one of the ShapeFormula's in the Vector<> inside
-                if (!inshape) {
-                    bs = new Pair<>(true, (ShapeFormula)this);
-                    Vector<Integer> remove = new Vector<>();
-
-                    //try each of the ShapeFormula's in the Vector<> inside to shape
-                    //if able to add a ShapeFormula's in the Vector<> inside to shape
-                    //then add the index that the Shapeformula was at to the begining
-                    //of the Vector<> remove so that integers in remove go from largest to smallest
+                if(inside.size() > 0) {
+                    boolean inshape = false;
+                    //try adding shape to one of the ShapeFormula's in the Vector<> inside.
+                    //if able to add shape to one of the ShapeFormula's in the Vector<> inside then set inshape to true
                     for (int i = 0; i < inside.size(); ++i) {
-                        if (shape.AddShape(inside.get(i)).first) {
-                            remove.add(0,i);
+                        bs = inside.get(i).AddShape(shape);
+                        if (bs.first) {
+                            inshape = true;
+                            i = inside.size();
                         }
                     }
-
-                    //go through each index value in remove and remove the shapeFormula at that index value
-                    //in the Vector<> inside. Values in remove go from largest to smallest, so the ShapeFormula's
-                    //are removed from inside at the end first, so that the ShapeFormula at index i+1 doesn't change after removing the ShapeFormula at index i
-                    for(int i = 0; i < remove.size(); ++i){
-                        int j = remove.get(i);
-                        inside.remove(j);
+                    //if not able to add shape to one of the ShapeFormula's in the Vector<> inside
+                    if (!inshape) {
+                        bs = new Pair<>(true, (ShapeFormula) this);
+                        Vector<Integer> remove = new Vector<>();
+                        //try each of the ShapeFormula's in the Vector<> inside to shape
+                        //if able to add a ShapeFormula's in the Vector<> inside to shape
+                        //then add the index that the Shapeformula was at to the begining
+                        //of the Vector<> remove so that integers in remove go from largest to smallest
+                        for (int i = 0; i < inside.size(); ++i) {
+                            if (shape.AddShape(inside.get(i)).first) {
+                                remove.add(0, i);
+                            }
+                        }
+                        //go through each index value in remove and remove the shapeFormula at that index value
+                        //in the Vector<> inside. Values in remove go from largest to smallest, so the ShapeFormula's
+                        //are removed from inside at the end first, so that the ShapeFormula at index i+1 doesn't change after removing the ShapeFormula at index i
+                        for (int i = 0; i < remove.size(); ++i) {
+                            int j = remove.get(i);
+                            inside.remove(j);
+                        }
+                        //finally add the shape to the Vector<> inside
+                        int addindexval = 0;
+                        while (addindexval < inside.size() && inside.get(addindexval).getDiamater() > shape.getDiamater()) {
+                            ++addindexval;
+                        }
+                        inside.add(addindexval, shape);
                     }
-                    //finally add the shape to the Vector<> inside
+                }
+                else{
                     inside.add(shape);
                 }
             }
@@ -438,7 +461,6 @@ public class CircleFormula implements ShapeFormula {
 
     }
 
-
     //if ShapeFormula shape is in the Vector<> inside or connectedShapes, then remove it from that vector
     public void RemoveShape(ShapeFormula shape){
       if(inBounds(shape)){
@@ -451,34 +473,42 @@ public class CircleFormula implements ShapeFormula {
     //if ShapeFormula shape is in the Vector<> inside then remove it from that vector
     private void RemoveShapeInside(ShapeFormula shape){
         int size = inside.size();
-        for(int i = 0; i < size; ++i){
-            if(inside.get(i)==shape){
-                ShapeFormula s = inside.get(i);
-                inside.remove(i);
-                //add any Shapes inside of shape to Vector<> inside
-                Vector<ShapeFormula> insideremoved = s.GetInsideShapes();
-                for(ShapeFormula sf:insideremoved){
-                    AddShape(sf);
+        try {
+            for (int i = 0; i < size; ++i) {
+                if (inside.get(i) == shape) {
+                    ShapeFormula s = inside.get(i);
+                    inside.remove(i);
+                    //add any Shapes inside of shape to Vector<> inside
+                    Vector<ShapeFormula> insideremoved = s.GetInsideShapes();
+                    for (ShapeFormula sf : insideremoved) {
+                        AddShape(sf);
+                    }
+                    i = size;
                 }
-                Vector<ShapeFormula> connecting = s.GetConnectedShapes();
-                for(ShapeFormula sf:connecting){
-                    sf.RemoveShape(shape);
-                }
-                i = size;
             }
-            else{
-                inside.get(i).RemoveShape(shape);
-            }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
     }
     //if ShapeFormula shape is in the Vector<> connectedShapes, then remove it from that vector
     private void RemoveShapeConnecting(ShapeFormula shape){
         int size = inside.size();
-        for(int i = 0; i < size; ++i){
-            if(connectedShapes.get(i)==shape){
-                connectedShapes.remove(i);
-                i = size;
+        try {
+            for (int i = 0; i < size; ++i) {
+                if (connectedShapes.get(i) == shape) {
+                    connectedShapes.remove(i);
+                    i = size;
+                    for (ShapeFormula sfi : inside) {
+                        sfi.GetCircumCircle().RemoveShapeConnecting(shape);
+                    }
+                }
             }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
     }
 
@@ -503,34 +533,57 @@ public class CircleFormula implements ShapeFormula {
     //radius of the circle, then the line must cross through the circle
     public boolean doesLineCross(LineFormula lf){
         boolean cross = false;
-        Pair<Float,Float> closestToLine = lf.GetClosestValue(h,k);
-        double distance = Maths.GetDistance(closestToLine,h,k);
-        if(distance < radius){
-            cross = true;
+        try {
+            Pair<Float, Float> closestToLine = lf.GetClosestValue(h, k);
+            double distance = Maths.GetDistance(closestToLine, h, k);
+            if (distance < radius) {
+                cross = true;
+            }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
         return cross;
     }
 
     public void AddConnectedShape(ShapeFormula sf){
-
-        connectedShapes.add(sf);
-        for(ShapeFormula sfi: inside){
-            if(Maths.CirclesOverlap(sf.GetCircumCircle(),sfi.GetCircumCircle()).first){
-                sfi.AddConnectedShape(sf);
+        try {
+            if ( (float) Maths.CircleDistance(this,sf.GetCircumCircle()) <=0)
+            {
+                int addindexval = 0;
+                while (addindexval < connectedShapes.size() && connectedShapes.get(addindexval).getDiamater() > sf.getDiamater()) {
+                    ++addindexval;
+                }
+                connectedShapes.add(addindexval, sf);
+                //connectedShapes.add(sf);
+                for (ShapeFormula sfi : inside) {
+                    sfi.AddConnectedShape(sf);
+                }
             }
         }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
+
     }
 
     //if returns true if cf == this or if cf dimensions are  with in .1f of this circle
     public boolean equals(CircleFormula cf){
         boolean equal = false;
-        if(cf == this){
-            equal = true;
-        }
-        else {
-            if (Math.abs(cf.h - h) <= .1 && Math.abs(cf.GetCircumCircle().k - k) <= .1 && Math.abs(cf.GetCircumCircle().radius - radius) <= .1) {
+        try {
+            if (cf == this) {
                 equal = true;
+            } else {
+                if (Math.abs(cf.h - h) <= .1 && Math.abs(cf.GetCircumCircle().k - k) <= .1 && Math.abs(cf.GetCircumCircle().radius - radius) <= .1) {
+                    equal = true;
+                }
             }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
         return equal;
     }

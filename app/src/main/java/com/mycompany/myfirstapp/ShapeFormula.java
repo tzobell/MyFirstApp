@@ -4,7 +4,7 @@ import android.util.Pair;
 
 import java.util.Vector;
 
-
+//interface for Formula's that describe shapes
 public interface ShapeFormula extends Formula {
     public double Area();
 

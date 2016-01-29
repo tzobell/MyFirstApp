@@ -22,7 +22,7 @@ import android.widget.EditText;
 
 
 public class MyActivity extends ActionBarActivity {
-    //drawtest mCustomDrawableView;
+
 
     CustomDrawableView mCustomDrawableView;
    ;
@@ -36,7 +36,8 @@ public class MyActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         Sound.initSound(this);
        mCustomDrawableView = new CustomDrawableView(this);
-       // mCustomDrawableView = new drawtest(this);
+
+
         setContentView(mCustomDrawableView);
 
     }
@@ -122,13 +123,7 @@ public class MyActivity extends ActionBarActivity {
                    result = true;
                    break;
 
-               case R.id.savemotion:
-                   mCustomDrawableView.SaveMotions();
-                   result = true;
-                   break;
-               case R.id.loadmotion:
-                   result = true;
-                   break;
+
                case R.id.playmotion:
                    mCustomDrawableView.PlayMotions();
                    result = true;
@@ -146,8 +141,6 @@ public class MyActivity extends ActionBarActivity {
                    mCustomDrawableView.Undo();
                    result = true;
                    break;
-
-
                default:
                    result = super.onOptionsItemSelected(item);
            }
@@ -163,10 +156,19 @@ public class MyActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_activity_actions, menu);
+        if(!BuildConfig.DEBUG){
+            MenuItem  mi = menu.findItem(R.id.polygon);
+            mi.getSubMenu().removeItem(R.id.line);
+            menu.removeItem(R.id.playmotion);
+            menu.removeItem(R.id.oneless);
+            menu.removeItem(R.id.onemore);
+
+
+        }
+
         return super.onCreateOptionsMenu(menu);
     }
-
-
 }

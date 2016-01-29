@@ -1,7 +1,7 @@
 package com.mycompany.myfirstapp;
 
 /**
- * Created by Owner on 8/21/2015.
+ enumeration for different types of shapes and methods
  */
 public enum ShapeType {
 
@@ -60,6 +60,9 @@ public enum ShapeType {
         return polyPoints;
     }
 
+    //returns the ShapeType that has polyPoints number of points
+    //if polyPoints is less than 0 or 1 then change polyPoints to 0
+    //if polyPoints is greater than MaxNum then change polyPoints to MaxNum
     public static ShapeType GetShapeType(int polyPoints){
         ShapeType st = null;
         if(polyPoints < 0 || polyPoints == 1){

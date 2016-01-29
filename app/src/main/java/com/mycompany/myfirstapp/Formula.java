@@ -3,7 +3,7 @@ package com.mycompany.myfirstapp;
 import android.util.Pair;
 
 /**
- * Created by Owner on 9/17/2015.
+ interface to be used by classes that describe a category of shapes or lines
  */
 public interface Formula {
 

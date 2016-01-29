@@ -5,10 +5,10 @@ import android.util.Pair;
 import com.mycompany.myfirstapp.Formula;
 
 /**
- * Created by Owner on 9/17/2015.
+ formula that described a point
  */
 public class PointFormula implements Formula {
-    public final float x,y;
+    public  float x,y;
     public PointFormula(float x, float y){
         this.x = x;
         this.y = y;
@@ -24,32 +24,25 @@ public class PointFormula implements Formula {
         return new Pair<Float,Float>(x,y);
     }
     public Formula[] GetGoldenPoints(){
-        Formula[] f = {this};
-        return f;
+        return new Formula[]{this};
     }
     public Pair<Float,Float>[] GetKeyPoints(){
-        Pair<Float,Float>[] keypoints =new Pair[1];
-        keypoints[0] = new Pair<Float,Float>(x,y);
-        return keypoints;
+        //Pair<Float,Float>[] keypoints =new Pair[1];
+       // keypoints[0] = new Pair<>(x,y);
+        return new Pair[]{new Pair<>(x,y)};
     }
 
     public boolean doesLineCross(LineFormula lf){
         return lf.onTheLine(x,y);
     }
-    public boolean equals(Pair<Float,Float> p){
-        return equals(p.first,p.second);
-    }
-    public boolean equals(PointFormula p){
-        return equals(p.x,p.y);
-    }
+    
     public boolean equals(float X,float Y){
         return (x == X && y == Y);
     }
-
     public Pair<Float,Float> GetStart(){
-        return new Pair<>(x,y);
+        return new Pair<Float,Float>(x,y);
     }
     public Pair<Float,Float> GetEnd(){
-        return new Pair<>(x,y);
+        return new Pair<Float,Float>(x,y);
     }
 }

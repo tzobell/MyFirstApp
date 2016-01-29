@@ -13,7 +13,7 @@ import android.graphics.drawable.shapes.Shape;
 import android.util.Pair;
 
 /**
- * Created by Owner on 9/11/2015.
+ class the extends ShapeDrawable and modified to be specifiec to goldenShapes
  */
 public class GoldenShapeDrawable extends ShapeDrawable {
     GoldenShape gs;

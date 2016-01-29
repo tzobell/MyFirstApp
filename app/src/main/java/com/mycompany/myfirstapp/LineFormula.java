@@ -1,37 +1,40 @@
 package com.mycompany.myfirstapp;
+/*
+LineFormula class implements Formula interface and has variables and methods to describe a line segment and to find closest point on the line to another given point
+* */
 
-import android.graphics.PointF;
 import android.util.Pair;
 
-import java.util.Arrays;
-
-/**
- * Created by Owner on 9/18/2015.
- */
 public class LineFormula implements Formula {
 
-    float m;//slope
-    float b;//yint
-    boolean straightLine;
-    boolean constX;
-    boolean constY;
-    GoldenPoints harmoniousPoints;
-    Side side;
-    PointFormula points[];//main/key points
-    PointFormula goldenP[];//only the golden points
-    PointFormula gpoints[];//contains all points
-    Pair<Float,Float> keyPoints[];
-    float startx,starty,endx,endy;
+    private float m;//slope
+    private float b;//yint
+    private boolean straightLine; //false if line has a slope 0 or infinity
+    private boolean constX; //true if slope is infinity
+    private boolean constY; //true if slope is 0
+
+    private Side side; //side that the line has
+    private PointFormula points[];//key points +  golden points arranged in a binary search tree
+    private PointFormula goldenP[];//only the golden points
+    private PointFormula gpoints[];//contains all points
+    private Pair<Float,Float> keyPoints[]; //start and end points
+   // private float[] pts; //all points with each x y having their own index
+     float startx,starty,endx,endy;
+
+
+    //constructor
     public LineFormula(float startx,float starty,float endx,float endy, Side side, boolean main){
+        this.startx = startx;
+        this.starty = starty;
+        this.endx = endx;
+        this.endy = endy;
+        this.side = side;
         try {
-            this.startx = startx;
-            this.starty = starty;
-            this.endx = endx;
-            this.endy = endy;
-            this.side = side;
+
             keyPoints = new Pair[2];
             keyPoints[0] = new Pair<Float,Float>(startx,starty);
             keyPoints[1] = new Pair<Float,Float>(endx,endy);
+            //if startx && endx are not the same and starty and endy are not the same then the line is not straight
             if (startx != endx && starty != endy) {
                 straightLine = false;
                 constX = false;
@@ -49,55 +52,25 @@ public class LineFormula implements Formula {
                 }
 
             }
-
-
             gpoints = GoldenPoints.getAllPoints(startx, starty, endx, endy,main);
-            goldenP = GoldenPoints.getGoldenPoints(startx, starty, endx, endy,main);
+            //pts = new float[gpoints.length *2];
+            int index = 0;
+           // for(PointFormula p:gpoints){
+            //    pts[index++] = p.x;
+           //     pts[index++] = p.y;
+           // }
 
+            goldenP = GoldenPoints.getGoldenPoints(startx, starty, endx, endy,main);
+            //find the number of points that should be in the points bindary search tree
             int l = gpoints.length % 2 != 0 ? gpoints.length : gpoints.length + 1;
             points = new PointFormula[(2*l)+1];
             createTree(0, 0, l - 1, gpoints);
         }
         catch (Exception e){
-            int abc = 123;
+            String a = e.getMessage();
+            System.out.println(a);
         }
 
-    }
-
-  public Side getSide(float x, float y){
-      Side s = null;
-
-      if(!straightLine || constY){
-          float ty = FoX(x,y).second;
-          if(y > ty){
-              s = Side.below;
-          }
-          else{
-              if(y < ty){
-                  s = Side.above;
-
-              }
-          }
-      }
-      else{
-          if(constX){
-              if(x > startx){
-                  s = Side.right;
-              }
-              if(x < startx){
-                  s = Side.left;
-              }
-          }
-
-      }
-      return s;
-  }
-
-    public Pair<Float,Float> GetStart(){
-        return new Pair<>(startx,starty);
-    }
-    public Pair<Float,Float> GetEnd(){
-        return new Pair<>(endx,endy);
     }
     public LineFormula(float startx,float starty,float endx,float endy){
         this(startx,starty,endx,endy,Side.above, false);
@@ -108,11 +81,48 @@ public class LineFormula implements Formula {
     public LineFormula(float startx,float starty,float endx,float endy, boolean main){
         this(startx,starty,endx,endy,Side.above, main);
     }
+    //return the side of the line that the point (x,y) is on
+  public Side getSide(float x, float y){
+      Side s = null;
+      try {
+          //if the line is not straight or is horizontal then (x,y) is either above or below the line
+          if (!straightLine || constY) {
+              float ty = FoX(x, y).second;
+              if (y > ty) {
+                  s = Side.below;
+              } else {
+                  if (y < ty) {
+                      s = Side.above;
+                  }
+              }
+          } else {
+              //if the line is a vertical straight line then (x,y) is either to the left or right of the line.
+              if (constX) {
+                  if (x > startx) {
+                      s = Side.right;
+                  }
+                  if (x < startx) {
+                      s = Side.left;
+                  }
+              }
+          }
+      }
+      catch (Exception e){
+          String a  = e.getMessage();
+          System.out.println(a);
+      }
+      return s;
+  }
 
+    public Pair<Float,Float> GetStart(){
+        return new Pair<Float,Float>(startx,starty);
+    }
+    public Pair<Float,Float> GetEnd(){
+        return new Pair<Float,Float>(endx,endy);
+    }
     //returns array of points not including the start and stop points on line
     public PointFormula[] GetGoldenPoints(){
         return  goldenP;
-
     }
 
     //return all points of interest in line including the start and stop points of the line
@@ -120,10 +130,17 @@ public class LineFormula implements Formula {
         return gpoints;
     }
 
+    //returns array containing all the points in the shape including golden points, but with each x and y value at its own index int the array
+    //so instead of index(i) == Pair<Float,Float>(x,y), we have index(i) == x and index(i+1) == y
+   // public float[] GetPoints(){
+   //     return pts;
+   // }
+
+//create binary search tree for searching through points
     private void createTree(int i, int start,int end, PointFormula[] gpoints) {
         try {
             if (start <= end) {
-                int mid = (int) ((end + start)/2);
+                int mid = ((end + start)/2);
                 points[i] = mid < gpoints.length ? gpoints[mid] : null;
                 int childA = (2 * i) + 1;
                 int childB = (2 * i) + 2;
@@ -132,85 +149,79 @@ public class LineFormula implements Formula {
             }
         }
         catch(Exception e){
-            int abc = 123;
+            String a = e.getMessage();
+            System.out.println(a);
         }
     }
 
     //returns the closest point in the points array to point (X,Y)
-    public Pair<Float, Float> GetClosestPoint(float X, float Y) {
-       return GetClosestPoint(X,Y,false,null);
+    public Pair<Float,Float> GetClosestPoint(float X, float Y) {
+       return GetClosestPoint(X, Y, false, null);
     }
 
     //returns the closest point in the points array to point (X,Y)
     //if except is true then it returns the closest point, unless it is equal to notThis, in
     //which case it returns the next closest point
-    private Pair<Float, Float> GetClosestPoint(float X, float Y,boolean except,Pair<Float,Float> notThis) {
+    private Pair<Float,Float> GetClosestPoint(float X, float Y,boolean except,Pair<Float,Float> notThis) {
         double curdis = Double.POSITIVE_INFINITY;
         int closest = 0;
-        for(int i = 0; i < gpoints.length; ++i){
-            if(except == false || !gpoints[i].equals(notThis.first,notThis.second)) {
-                double tempdis = Maths.GetDistance(X, Y, gpoints[i]);
-                if (tempdis < curdis) {
-                    curdis = tempdis;
-                    closest = i;
+        try {
+            for (int i = 0; i < gpoints.length; ++i) {
+                if (!except || !gpoints[i].equals(notThis.first, notThis.second)) {
+                    double tempdis = Maths.GetDistance(X, Y, gpoints[i]);
+                    if (tempdis < curdis) {
+                        curdis = tempdis;
+                        closest = i;
+                    }
                 }
             }
         }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
         return gpoints[closest].GetClosestPoint(X, Y);
-        //return points[FindClosest(X,Y)].GetClosestPoint(X, Y);
     }
 
 
     //gets the second closest point to (x,y)
     public Pair<Float,Float> GetNextClosestPoint(Float x,Float y){
         return GetClosestPoint(x, y, true, GetClosestPoint(x, y));
-
-
     }
-
-    public Pair<Float,Float> GetClosestValue(Float X,Float Y){
-        return GetClosestValue(X, Y, true);
-    }
-
 
     //returns the closest point to x,y out of the starting and ending point of the line
     public Pair<Float,Float> GetBasicClosestPoint(float x,float y){
         double distanceStart = Maths.GetDistance(x,y,startx,starty);
         double distanceEnd = Maths.GetDistance(x,y,endx,endy);
-        return distanceStart>distanceEnd?new Pair<>(endx,endy):new Pair<>(startx,starty);
+        return distanceStart>distanceEnd?new Pair<Float,Float>(endx,endy):new Pair<Float,Float>(startx,starty);
     }
     public Pair<Float,Float> GetBasicClosestPoint(Pair<Float,Float> p){
         return GetBasicClosestPoint(p.first,p.second);
     }
-    //returns the closest (x,y) value on the line between (startx,starty),(endx,endy) to point (X,Y)
-    public Pair<Float,Float> GetClosestValue(float X,float Y, boolean withInSegment){
-        boolean xrange = Maths.inRange(startx,endx,X);
-        boolean yrange = Maths.inRange(starty,endy,Y);
-        int v = (xrange == true?1:0) + (yrange == true?2:0);
+
+    //returns the closest (x,y) value on the line
+    //if withInSegment is true, find the closest value that lies on or between (startx,starty),(endx,endy) to point (X,Y)
+    //else if withInSegment if false find closest value to (X,Y) on the line as if the line went out to infinity
+    public Pair<Float,Float> GetClosestValue(float x,float y, boolean withInSegment){
         //false,false, = 0
         //both true = 3
         //true,false = 1
         //false,true = 2
-        float x = X;
-        float y = Y;
         float closestx = x;
         float closesty = y;
         try {
-
-
-            if (straightLine == false) {
+            if (!straightLine) {
                 //find line of y = mx+b that is perpendicular to this line and passes through (X,Y)
                 float pm = -1 * (1 / m);
                 float pb = y - (pm * x);
                 closestx = (y - pb) / pm;
-
                 //y value at which this line and the line perpendicular to it that passes through (X,Y) = (b+(m^2 * pb))/(m^2 + 1)
                 closesty = (b + (m * m * pb)) / ((m * m) + 1);
                 closestx = (closesty - b) / m;
 
                 //if closest point on equation y = mx+b to point (X,Y) is outside of (startx,starty),(endx,endy), then find which end point is closest to (X,Y)
-               if(withInSegment == true) {
-                   if (Maths.inRange(startx, endx, closestx) != true || Maths.inRange(starty, endy, closesty) != true) {
+               if(withInSegment) {
+                   if (!Maths.inRange(startx, endx, closestx) || !Maths.inRange(starty, endy, closesty) ) {
                        double distanceStart = Maths.GetDistance(startx, starty, x, y);
                        double distanceEnd = Maths.GetDistance(endx, endy, x, y);
                        if (distanceStart < distanceEnd) {
@@ -224,7 +235,7 @@ public class LineFormula implements Formula {
                }
 
             } else {
-                if (constX == true) {
+                if (constX) {
                     closestx = startx;
                     closesty = y;
                 } else {
@@ -242,128 +253,107 @@ public class LineFormula implements Formula {
        return new Pair<Float,Float>(closestx,closesty);
     }
 
+    public Pair<Float,Float> GetClosestValue(Float X,Float Y){
+        return GetClosestValue(X, Y, true);
+    }
 
-    //find the line of y = mx+b that is perpendicular to this line and passes through (X,Y)
+    //find the line of y = mx+b if line has a slope or x=startx or y = starty if line has a slope of 0 or infinity
+    // that is perpendicular to this line and passes through (X,Y)
     public LineFormula GetPerpindicular(float x,float y){
         float tempStarty = starty;
         float tempEndy = endy;
         float tempStartx = startx;
         float tempEndx = endx;
 
-        if (!straightLine) {
+        try {
+            if (!straightLine) {
+                float pm = -1 * (1 / m);//slop of perpendicular line
+                float pb = y - (pm * x); //y int of perpendicular line
 
-            float pm = -1 * (1 / m);//slop of perpendicular line
-            float pb = y - (pm * x); //y int of perpendicular line
-
-            //startx,endx
-            int senario = Maths.inRange(startx, endx, x) ? 0 : Maths.inRange(startx, x, endx) ? 1 : 2;
-            switch (senario) {
-
-                //x is inbetween or equal to the range from (startx to endx);
-                case 0:
-                    tempStartx = startx;
-                    tempEndx = endx;
-                    tempStarty = (pm * tempStartx) + pb;
-                    tempEndy = (pm * tempEndx) + pb;
-                    break;
-                //endx is inbetween or equal to the range from (startx to x);
-                case 1:
-                    tempStartx = startx;
-                    tempEndx = x;
-                    tempStarty = (pm * tempStartx) + pb;
-                    tempEndy = (pm * tempEndx) + pb;
-                    break;
-                //startx is inbetween or equal to the range from (x to endx);
-                case 2:
-                    tempStartx = x;
-                    tempEndx = endx;
-                    tempStarty = (pm * tempStartx) + pb;
-                    tempEndy = (pm * tempEndx) + pb;
-                    break;
-            }
-        }
-        else{
-            if(constX){
-                tempStarty = y;
-                tempEndy = y;
-                double dis = Maths.GetDistance(startx,endy,endx,endy);
-                tempStartx = (float)(x+(dis/2));
-                tempEndx = (float)(x-(dis/2));
-                int senario = Maths.inRange(tempStartx,  tempEndx, startx) ? 0 : Maths.inRange( tempEndx, startx,tempStartx) ? 1 : 2;
-                switch (senario){
-                    //startx inbetween tempstartx and tempEndx
+                //startx,endx
+                int senario = Maths.inRange(startx, endx, x) ? 0 : Maths.inRange(startx, x, endx) ? 1 : 2;
+                switch (senario) {
+                    //x is inbetween or equal to the range from (startx to endx);
                     case 0:
+                        tempStartx = startx;
+                        tempEndx = endx;
+                        tempStarty = (pm * tempStartx) + pb;
+                        tempEndy = (pm * tempEndx) + pb;
                         break;
-                    //tempstartx inbetween tempendx and startx
+                    //endx is inbetween or equal to the range from (startx to x);
                     case 1:
                         tempStartx = startx;
+                        tempEndx = x;
+                        tempStarty = (pm * tempStartx) + pb;
+                        tempEndy = (pm * tempEndx) + pb;
                         break;
-                    //tempendx inbetween startx and tempstartx
+                    //startx is inbetween or equal to the range from (x to endx);
                     case 2:
-                        tempEndx = startx;
+                        tempStartx = x;
+                        tempEndx = endx;
+                        tempStarty = (pm * tempStartx) + pb;
+                        tempEndy = (pm * tempEndx) + pb;
                         break;
                 }
-
-            }
-
-            else{
-                tempStartx = x;
-                tempEndx = x;
-                double dis = Maths.GetDistance(startx,endy,endx,endy);
-                tempStarty = (float)(y+(dis/2));
-                tempEndy = (float)(y-(dis/2));
-                int senario = Maths.inRange(tempStarty,  tempEndy, starty) ? 0 : Maths.inRange( tempEndy, starty,tempStarty) ? 1 : 2;
-                switch (senario){
-                    //starty inbetween tempstarty and tempEndy
-                    case 0:
-                        break;
-                    //tempstarty inbetween tempendy and starty
-                    case 1:
-                        tempStarty = starty;
-                        break;
-                    //tempendy inbetween starty and tempstarty
-                    case 2:
-                        tempEndy = starty;
-                        break;
+            } else {
+                if (constX) {
+                    tempStarty = y;
+                    tempEndy = y;
+                    double dis = Maths.GetDistance(startx, endy, endx, endy);
+                    tempStartx = (float) (x + (dis / 2));
+                    tempEndx = (float) (x - (dis / 2));
+                    int senario = Maths.inRange(tempStartx, tempEndx, startx) ? 0 : Maths.inRange(tempEndx, startx, tempStartx) ? 1 : 2;
+                    switch (senario) {
+                        //startx inbetween tempstartx and tempEndx
+                        case 0:
+                            break;
+                        //tempstartx inbetween tempendx and startx
+                        case 1:
+                            tempStartx = startx;
+                            break;
+                        //tempendx inbetween startx and tempstartx
+                        case 2:
+                            tempEndx = startx;
+                            break;
+                    }
+                } else {
+                    tempStartx = x;
+                    tempEndx = x;
+                    double dis = Maths.GetDistance(startx, endy, endx, endy);
+                    tempStarty = (float) (y + (dis / 2));
+                    tempEndy = (float) (y - (dis / 2));
+                    int senario = Maths.inRange(tempStarty, tempEndy, starty) ? 0 : Maths.inRange(tempEndy, starty, tempStarty) ? 1 : 2;
+                    switch (senario) {
+                        //starty inbetween tempstarty and tempEndy
+                        case 0:
+                            break;
+                        //tempstarty inbetween tempendy and starty
+                        case 1:
+                            tempStarty = starty;
+                            break;
+                        //tempendy inbetween starty and tempstarty
+                        case 2:
+                            tempEndy = starty;
+                            break;
+                    }
                 }
             }
         }
-
-
-            return new LineFormula(tempStartx,tempStarty,tempEndx,tempEndy);
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
+        return new LineFormula(tempStartx,tempStarty,tempEndx,tempEndy);
     }
 
     //return true or false for wither the lineFormula passed crosses through this lineFormula segment.
     public boolean doesLineCross(LineFormula lf){
-
         boolean cross = true;
         if(getSide(lf.startx,lf.starty) == getSide(lf.endx,lf.endy) || lf.getSide(startx,starty) == lf.getSide(endx,endy)){
-                    cross = false;
-
-
+            cross = false;
         }
         return cross;
-
-
-
     }
-
-    public double getY(double x){
-        double y = 0;
-        if(straightLine == false){
-            y = (m * x) + b;
-        }
-        else{
-            if(constX == true){
-                x = startx;
-            }
-            else{
-                y = starty;
-            }
-        }
-        return y;
-    }
-
 
     //returns true if (x,y) is on the line, other wise returns false
     public boolean onTheLine(float x, float y){
@@ -391,15 +381,11 @@ public class LineFormula implements Formula {
     ////if the line has a slope, and fox is false then return Pair(x=f(p.second),p.second)
     //if x is constant then returns Pair(constant x value, p.second)
     //if y is constant then returns Pair(p.first,constant y value)
-    private Pair<Float,Float> getpoint(Pair<Float,Float> p){
-        return getpoint(p,true);
-    }
-
     private Pair<Float,Float> getpoint(Pair<Float,Float> p,boolean fox){
         float x = p.first;
         float y = p.second;
-        if(straightLine == false){
-            if(fox == true) {
+        if(!straightLine){
+            if(fox) {
                 y = (m * p.first) + b;
             }
             else{
@@ -407,7 +393,7 @@ public class LineFormula implements Formula {
             }
         }
         else{
-            if(constX == true){
+            if(constX){
                 x = startx;
             }
             else{
@@ -416,7 +402,9 @@ public class LineFormula implements Formula {
         }
         return new Pair<Float,Float>(x,y);
     }
-
+    private Pair<Float,Float> getpoint(Pair<Float,Float> p){
+        return getpoint(p, true);
+    }
     //if the line has a slope, then return Pair(p.first,y=f(p.first))
     //if x is constant then returns Pair(constant x value, p.second)
     //if y is constant then returns Pair(p.first,constant y value)
@@ -426,7 +414,7 @@ public class LineFormula implements Formula {
 
     private Pair<Float,Float> FoX(Pair<Float,Float> p){
 
-        return getpoint(p,true);
+        return getpoint(p, true);
     }
 
     //if the line has a slope, then return Pair(x=f(p.second),p.second)
@@ -453,47 +441,32 @@ public class LineFormula implements Formula {
     //find point on line(start,end) that is distance away from start
     //if inrange is true, find point that is distance away from (startx,starty) going towards (endx,endy)
     //if inrange is false, fine point that is distance away from (startx,starty) going away from (endx,endy);
-    public Pair<Float,Float> findDistantPoint(double distance ){
-        return findDistantPoint(distance,true);
-    }
-
     public Pair<Float,Float> findDistantPoint(double distance, boolean inrange ){
         float x1 = startx;
-        float y1 = starty;
         float x2 = endx;
-        float y2 = endy;
-
         //x value along line y=mx+b that is n distance away from x1,y1 is x1+sqrt((n^2)/(1+(m^2)));
         double newx = x1 + Math.sqrt((Math.pow(distance, 2)) / (1 + (m * m)));
         double newy = (m * newx) + b;
 
-        if(inrange == true) {
+        if(inrange) {
             if((x2 < x1 && newx > x1) || (x2 > x1 && newx < x1)){
                 newx = x1 - Math.sqrt((Math.pow(distance, 2)) / (1 + (m * m)));
                 newy = (m * newx) + b;
             }
-            /*if ((!(Maths.inRange(x1, x2, (float) newx))) || (!Maths.inRange(y1, y2, (float) newy))) {
-                newx = x1 - Math.sqrt((Math.pow(distance, 2)) / (1 + (m * m)));
-                newy = (m * newx) + b;
-            }*/
         }
         else{
-
             if((x2 < x1 && newx < x1) || (x2 > x1 && newx > x1)){
                 newx = x1 - Math.sqrt((Math.pow(distance, 2)) / (1 + (m * m)));
                 newy = (m * newx) + b;
             }
-            /*if (((Maths.inRange(x1, x2, (float) newx))) || (Maths.inRange(y1, y2, (float) newy))) {
-                newx = x1 - Math.sqrt((Math.pow(distance, 2)) / (1 + (m * m)));
-                newy = (m * newx) + b;
-            }*/
         }
-        Pair<Float,Float> p = new Pair<Float,Float>((float)newx,(float)newy);
-        return  p;
+        return  new Pair<>((float)newx,(float)newy);
     }
-    //method used to find the center of a regular polygon with an odd number of points
+    public Pair<Float,Float> findDistantPoint(double distance ){
+        return findDistantPoint(distance,true);
+    }
 
-
+    //returns true if (x,y) is one the main or golden points on this line, else return false
     public boolean isPoint(float x,float y){
         boolean ispoint = false;
         for(PointFormula pf:gpoints){
@@ -505,38 +478,38 @@ public class LineFormula implements Formula {
         return ispoint;
     }
 
+    //returns true if p is on the same side as the variable side corresponds to
     public boolean inside(Pair<Float,Float> p){
         boolean in = false;
-            Pair<Float,Float> testX = FoX(p);// getpoint(p);
-        Pair<Float,Float> testY = FoY(p);
-        double xdiff = Math.abs(testY.first - p.first);
-        double ydiff = Math.abs(testX.second - p.second);
-
-
-
-        double cuttoff = .001;
-            switch(side){
+        try {
+            Pair<Float, Float> testX = FoX(p);// getpoint(p);
+            Pair<Float, Float> testY = FoY(p);
+            double xdiff = Math.abs(testY.first - p.first);
+            double ydiff = Math.abs(testX.second - p.second);
+            double cuttoff = .001;
+            switch (side) {
                 case above:
-                    in = (p.second <=testX.second||cuttoff >= ydiff)?true:false;
+                    in = (p.second <= testX.second || cuttoff >= ydiff);
                     break;
                 case below:
-                    in = (p.second >=testX.second||cuttoff >= ydiff)?true:false;
+                    in = (p.second >= testX.second || cuttoff >= ydiff);
                     break;
                 case left:
-                    in = (p.first <=testY.first||cuttoff >= xdiff)?true:false;
+                    in = (p.first <= testY.first || cuttoff >= xdiff);
                     break;
                 case right:
-                    in = (p.first >= testY.first||cuttoff >= xdiff)?true:false;
+                    in = (p.first >= testY.first || cuttoff >= xdiff);
                     break;
             }
-
-        if(in == false){
-            int abc =123;
-            abc+=2;
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
         return in;
     }
 
+    //returns true if (x,y) is equal to the starting or ending points of the line, else returns false
     public boolean isKeyPoint(float x, float y){
         boolean isKey = false;
         for(Pair<Float,Float> p:keyPoints){

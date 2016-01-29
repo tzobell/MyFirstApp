@@ -18,13 +18,13 @@ import android.view.View;
 import java.util.Vector;
 
 
-
+//handles the drawing of shapes on the canvas
 public class CustomDrawableView extends View {
     private GoldenShapeDrawable  mDrawable;
     private ScaleGestureDetector detector;
     private Paint mBitmapPaint;
     Canvas can = null;
-    PointTree tree = null;
+
     Bitmap bm = null;
     Bitmap previousBm = null;
     Bitmap drawingBm = null;
@@ -95,10 +95,8 @@ public class CustomDrawableView extends View {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-
         canvasHeight = h;
         canvasWidth = w;
-        tree = new PointTree(canvasHeight, canvasWidth);
         can = new Canvas(bm);
         backGroundColor = bm.getPixel(0,0);
         drawingBm = bm;
@@ -120,45 +118,47 @@ public class CustomDrawableView extends View {
         }
     }
 
-    //redraw the canvas except for the previous movement event.
+    //undo the last shape drawn
+    // remove references to the last shape drawn and redraw without the last shape drawn.
     public void Undo() {
         try {
-             if (shapeHistory.size() > 0) {
+            if (shapeHistory.size() > 0) {
                 undoing = true;
                 Clear();
                 ShapeSummary ls = shapeHistory.get(shapeHistory.size() - 1);
                 Formula f = ls.sf;
                 if (f instanceof ShapeFormula) {
                     ShapeFormula sf = (ShapeFormula) f;
-                    if (ls.addedto != null) {
-                        ls.addedto.RemoveShape((ShapeFormula) ls.sf);
-                    } else {
-                        int size = shapes.size();
-                        for (int i = 0; i < size; ++i) {
-                            if (shapes.get(i) == ls.sf) {
-                                shapes.remove(i);
-                                i = size;
-                            }
-                        }
-                        for (ShapeFormula s : sf.GetInsideShapes()) {
-                            AddShape(s);
+                    Vector<ShapeFormula> associated = ls.GetAssociatedShapes();
+                    for (ShapeFormula shapeformula : associated) {
+                        shapeformula.RemoveShape((ShapeFormula) ls.sf);
+                    }
+                    int size = shapes.size();
+                    for (int i = 0; i < size; ++i) {
+                        if (shapes.get(i) == ls.sf) {
+                            shapes.remove(i);
+                            i = size;
                         }
                     }
-
-                }
-                shapeHistory.remove(shapeHistory.size() - 1);
-                for (int i = 0; i < shapeHistory.size(); ++i) {
-                    ShapeSummary ss = shapeHistory.get(i);
-                    shape = ss.shape;
-                    setStart(ss.startx, ss.starty);
-                    setEnd(ss.endx, ss.endy);
-                    //mDrawable.draw(can);
-                    draw();
-                    newCanvas();
-                    invalidate();
+                    for (ShapeFormula s : sf.GetInsideShapes()) {
+                        AddShape(s);
+                    }
                 }
             }
+            shapeHistory.remove(shapeHistory.size() - 1);
+            for (int i = 0; i < shapeHistory.size(); ++i) {
+                ShapeSummary ss = shapeHistory.get(i);
+                shape = ss.shape;
+                setStart(ss.startx, ss.starty);
+                setEnd(ss.endx, ss.endy);
+                //mDrawable.draw(can);
+                draw();
+                mDrawable.gs.DrawCircumCircle(true);
+                newCanvas();
+                invalidate();
+            }
         }
+
         catch(Exception e){
             System.out.println(e.getMessage());
         }
@@ -174,7 +174,7 @@ public class CustomDrawableView extends View {
             }
             bm = Bitmap.createBitmap(bm.getWidth(), bm.getHeight(), Bitmap.Config.ARGB_8888);
             can = new Canvas(bm);
-            tree = new PointTree(canvasHeight, canvasWidth);
+
            if(!undoing){
                shapes.clear();
                shapeHistory.clear();
@@ -207,6 +207,7 @@ public class CustomDrawableView extends View {
     //if f is an instance of ShapeFormula then try adding f to a shapeFormula in vector<ShapeFormula> shapes.
     //if f cannot be added to any of the ShapeFormula's in shapes then add f to shapes.
     void AddShape(Formula f){
+        try{
         ShapeFormula insideShape = null;
         if(f instanceof ShapeFormula){
             ShapeFormula sf =(ShapeFormula)f;
@@ -228,17 +229,27 @@ public class CustomDrawableView extends View {
             if(!added){
                 shapes.add(sf);
             }
+            if(!undoing){
+                shapeHistory.add(new ShapeFormulaSummary(startx,starty,endx,endy,shape,sf,insideShape,startShape));
+            }
         }
-        if(!undoing){
-            shapeHistory.add(new ShapeSummary(startx,starty,endx,endy,shape,f,insideShape,startShape));
+        else {
+            if (!undoing) {
+                shapeHistory.add(new ShapeSummary(startx, starty, endx, endy, shape, f, insideShape, startShape));
+            }
+        }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
     }
 
     //sets newcanvas to true to indicate to save canvas nex time onDraw is called.
-    void newCanvas(){
-        newCanvas(true);
-    }
 
+
+    //Calls AddShape if addShape == true
+    // draws shape in mDrawable onto Canvas Can then resets mDrawable for the next shape to be drawn
     void newCanvas(boolean addShape){
         try {
             Formula f = mDrawable.GetGoldenShape().GetFormula();
@@ -247,6 +258,7 @@ public class CustomDrawableView extends View {
             }
             ShapeType st = shape;
             mDrawable.draw(can);
+            can.save();
             shape = ShapeType.circle;
             shape = st;
             setStart(0, 0);
@@ -254,19 +266,20 @@ public class CustomDrawableView extends View {
             getnewshape();
             mDrawable.getPaint().setColor(drawColor);
             mDrawable.setBounds(0, 0, 0, 0);
-            can.save();
+
 
         }
         catch(Exception e){
             System.out.println(e.getMessage());
         }
     }
-
-    public void draw(){
-        draw(drawColor);
-
+    void newCanvas(){
+        newCanvas(true);
     }
 
+
+    //calls getnewshape() to initilize mDrawable to the correct shape
+    //then sets the color,style and bounds for mDrawable
     public void draw(int color){
         try {
             getnewshape();
@@ -278,7 +291,34 @@ public class CustomDrawableView extends View {
             System.out.println(e.getMessage());
         }
     }
+    public void draw(){
+        draw(drawColor);
 
+    }
+
+    //initilizes mDrawable with the shape and shape demensions
+    private void getnewshape(){
+        try {
+            if(shape == ShapeType.circle) {
+                mDrawable = new GoldenShapeDrawable(new CircleShape(startx, starty, endx, endy,width,height));
+            }
+            else {
+                if (shape == ShapeType.line) {
+                    p = new Path();
+                    p.moveTo(startx, starty);
+                    p.lineTo(endx, endy);
+                    mDrawable = new GoldenShapeDrawable(new Line(startx, starty, endx, endy, p, width, height, false));
+                }
+                else {
+                    int polyPoints = ShapeType.GetNumberOfPoints(shape);
+                    mDrawable = new GoldenShapeDrawable(new PolyShape(polyPoints, startx, starty, endx, endy, width, height));
+                }
+            }
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
     //sets the starting points of the current shape being drawn and sets startset to true if it is currently false.
     //and recalculates the width and height if the endset is true;
     public void setStart(float X, float Y){
@@ -296,9 +336,6 @@ public class CustomDrawableView extends View {
         setStart(start.first, start.second);
     }
 
-    public void setEnd(Pair<Float,Float> end) {
-        setEnd(end.first, end.second);
-    }
     //sets the ending points of the current shape being drawn and sets endset to true if it is currently false, and sets the width and height of the shape
     public void setEnd(float X, float Y){
         try {
@@ -308,40 +345,19 @@ public class CustomDrawableView extends View {
              endx = X;
             endy = Y;
             SetWidthAndHeight();
-
         }
         catch(Exception e){
             System.out.println(e.getMessage());
         }
+    }
+    public void setEnd(Pair<Float,Float> end) {
+        setEnd(end.first, end.second);
     }
 
     //calculates the width and height for the current shape
     public void SetWidthAndHeight(){
         width = Math.abs(endx - startx);
         height = Math.abs(endy - starty);
-    }
-
-    private void getnewshape(){
-        try {
-            if(shape == ShapeType.circle) {
-                mDrawable = new GoldenShapeDrawable(new CircleShape(startx, starty, endx, endy,width,height));
-            }
-            else {
-                if (shape == ShapeType.line) {
-                    p = new Path();
-                    p.moveTo(startx, starty);
-                    p.lineTo(endx, endy);
-                    mDrawable = new GoldenShapeDrawable(new GPathShape(startx, starty, endx, endy, p, width, height, false));
-                }
-                else {
-                    int polyPoints = ShapeType.GetNumberOfPoints(shape);
-                    mDrawable = new GoldenShapeDrawable(new PolyShape(polyPoints, startx, starty, endx, endy, width, height));
-                }
-            }
-        }
-        catch(Exception e){
-            System.out.println(e.getMessage());
-        }
     }
 
     //return Formula of type st with starting and ending points (xstart,ystart),(xend,yend)
@@ -371,6 +387,8 @@ public class CustomDrawableView extends View {
         return sh;
     }
 
+    //return shapeFormula of ShapeType st starting st point (xstart,ystart) and ending at (xend,yend)
+    //if st is line then will return circle
     private ShapeFormula CreateShape(float xstart,float ystart,float xend,float yend,ShapeType st){
         if(st == ShapeType.line){
             st = ShapeType.circle;
@@ -379,7 +397,6 @@ public class CustomDrawableView extends View {
     }
 
     public void SetShape(ShapeType st){
-
         shape = st;
     }
 
@@ -389,7 +406,7 @@ public class CustomDrawableView extends View {
     //if thisshape it is not with in the threshold return x,y with positive infinity as the distance
     private Pair<Double,Pair<Float,Float>> CirclesIntersect(float x, float y,ShapeFormula thisshape, ShapeFormula prevShape, ShapeFormula test) {
     double distance = Double.POSITIVE_INFINITY;
-    Pair<Float, Float> closest = new Pair<>(x, y);
+    Pair<Float,Float> closest = new Pair<Float,Float>(x, y);
     try {
         if (thisshape != null && endset && !test.GetCircumCircle().equals(startShape.GetCircumCircle())) {
             float circleDistance = (float) Maths.CircleDistance(thisshape.GetCircumCircle(), test.GetCircumCircle());
@@ -421,16 +438,25 @@ public class CustomDrawableView extends View {
         intersectThisShape.clear();
         intersectPrevShapes.clear();
         intersectShapes.clear();
-        Pair<Float,Float> closest = new Pair<>(x,y);
-        Pair<Float,Float> p = new Pair<>(x,y);
+        Pair<Float,Float> closest = new Pair<Float,Float>(x,y);
+        Pair<Float,Float> p = new Pair<Float,Float>(x,y);
         ShapeFormula closestShape = null;
         intersect=null;
         try {
             ShapeFormula thisshape = CreateShape(startx, starty, x, y, shape);
-            ShapeFormula prevShape = endset?CreateShape(startx,starty,endx,endy,shape):null;
+            ShapeFormula prevShape = endset?CreateShape(startx, starty, endx, endy, shape):null;
             double distance = Double.POSITIVE_INFINITY;
             for (int i = 0; i < shapes.size(); ++i) {
-                Pair<Float, Float> c = startset ? shapes.get(i).GetClosestPoint(startx, starty, x, y) : shapes.get(i).GetBasicClosestPoint(x, y);
+                Pair<Float,Float> c = startset ?shapes.get(i).GetClosestPoint( x, y) : shapes.get(i).GetBasicClosestPoint(x, y);// shapes.get(i).GetClosestPoint(startx, starty, x, y) : shapes.get(i).GetBasicClosestPoint(x, y);
+                if(startset) {
+                    Pair<Float, Float> cc =  shapes.get(i).GetClosestPoint(startx, starty, x, y);
+
+                    if(cc.first.floatValue()!=c.first.floatValue() || cc.second.floatValue()!=c.second.floatValue()){
+                        int abc = 123;
+                        abc+=2;
+                    }
+                }
+
                 double tempdis = Maths.GetDistance(p, c);
                 if (tempdis < distance) {
                     closest = c;
@@ -456,7 +482,6 @@ public class CustomDrawableView extends View {
         catch(Exception e){
             System.out.println(e.getMessage());
         }
-
         return new Pair<>(closestShape, closest);
     }
 
@@ -468,41 +493,46 @@ public class CustomDrawableView extends View {
         //to determine if the the line intersects the startshape
         boolean cross = false;
 
-        Pair<Float, Float> closest = new Pair<>(x, y);
-        boolean same = (startx == closestX && starty == closestY);
-        if (!same) {
-            cross = startShape.doesLineCross(startToEnd);
-        }
-        Pair<Float, Float> closestStart;
-        boolean startInB = startInCircumCircle && startShape.inBounds(startx, starty);
-        boolean endInBounds = startShape.inBounds(x, y);
-        Pair<Float, Float> closestE = endInBounds ? new Pair<>(closestX, closestY) : inShape.GetClosestToPerimeter(closestX, closestY);
-        Pair<Float, Float> closestS = startInB ? new Pair<>(startx, starty) : startShape.GetClosestToPerimeter(startx, starty);
-
-        if (cross) {
-            startToEnd = new LineFormula(closestS.first, closestS.second, closestE.first, closestE.second);
-            closest = startToEnd.GetClosestValue(x, y, false);
-        } else {
-            Pair<Boolean, LineFormula> blf = inShape.isKeyPoint(closestE.first, closestE.second, startx, starty);
-            if (blf.first) {
-                // closestX = closestp.first;
-                //closestY = closestp.second;
-                Pair<Float, Float> closestToLine = blf.second.GetClosestValue(startx, starty, false);
-                closest = closestE;
-                setStart(closestToLine);
-            } else {
-                if (blf.second != null) {
-                    closest = new Pair<>(closestX, closestY);
-                    LineFormula perpLine = blf.second.GetPerpindicular(closestX, closestY);
-                    closestStart = perpLine.GetClosestValue(startx, starty, false);
-                    closestStart = inShape.GetClosestToCircumCircle(closestStart);
-                    setStart(closestStart);
-                }
+        Pair<Float,Float> closest = new Pair<Float,Float>(x, y);
+        try {
+            boolean same = (startx == closestX && starty == closestY);
+            if (!same) {
+                cross = startShape.doesLineCross(startToEnd);
             }
+            Pair<Float, Float> closestStart;
+            boolean startInB = startInCircumCircle && startShape.inBounds(startx, starty);
+            boolean endInBounds = startShape.inBounds(x, y);
+            Pair<Float, Float> closestE = endInBounds ? new Pair<Float, Float>(closestX, closestY) : inShape.GetClosestToPerimeter(closestX, closestY);
+            Pair<Float, Float> closestS = startInB ? new Pair<Float, Float>(startx, starty) : startShape.GetClosestToPerimeter(startx, starty);
 
+            if (cross) {
+                startToEnd = new LineFormula(closestS.first, closestS.second, closestE.first, closestE.second);
+                closest = startToEnd.GetClosestValue(x, y, false);
+            } else {
+                Pair<Boolean, LineFormula> blf = inShape.isKeyPoint(closestE.first, closestE.second, startx, starty);
+                if (blf.first) {
+                    // closestX = closestp.first;
+                    //closestY = closestp.second;
+                    Pair<Float, Float> closestToLine = blf.second.GetClosestValue(startx, starty, false);
+                    closest = closestE;
+                    setStart(closestToLine);
+                } else {
+                    if (blf.second != null) {
+                        closest = new Pair<Float, Float>(closestX, closestY);
+                        LineFormula perpLine = blf.second.GetPerpindicular(closestX, closestY);
+                        closestStart = perpLine.GetClosestValue(startx, starty, false);
+                        closestStart = inShape.GetClosestToCircumCircle(closestStart);
+                        setStart(closestStart);
+                    }
+                }
+
+            }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
         return closest;
-
     }
 
     //adjust the starting and ending points so that they allign with eachother outisde of other shapes
@@ -513,35 +543,39 @@ public class CustomDrawableView extends View {
         //to determine if the the line intersects the startshape
         boolean cross = false;
 
-        Pair<Float, Float> closest = new Pair<>(x, y);
-        boolean same = (startx == closestX && starty == closestY);
-        Pair<Float, Float> closestStart;
-        if (!same) {
-            cross = startShape.doesLineCross(startToEnd);
+        Pair<Float,Float> closest = new Pair<Float,Float>(x, y);
+        try {
+            boolean same = (startx == closestX && starty == closestY);
+            Pair<Float, Float> closestStart;
+            if (!same) {
+                cross = startShape.doesLineCross(startToEnd);
+            }
+            //the point is not with in the circumcircle of an already exsisting shape
+            if (cross) {
+                closest = startShape.GetClosestToCircumCircle(x, y, false);
+                startToEnd = new LineFormula(x, y, closest.first, closest.second);
+
+                closestStart = startToEnd.GetClosestValue(startx, starty, false);
+                closestStart = startShape.GetClosestToCircumCircle(closestStart.first, closestStart.second);
+                setStart(closestStart);
+            } else {
+                closestStart = startShape.GetClosestToCircumCircle(x, y, false);
+                LineFormula startlf = new LineFormula(closestStart.first, closestStart.second, x, y);
+                closestStart = startlf.GetClosestValue(startx, starty, false);
+                closestStart = startShape.GetClosestToCircumCircle(closestStart);
+                setStart(closestStart);
+            }
+
+            if (shapes.size() > 0) {
+
+                closest = AdjustPointToDiatonicRatio(x, y);
+            }
         }
-        //the point is not with in the circumcircle of an already exsisting shape
-        if (cross) {
-            closest = startShape.GetClosestToCircumCircle(x, y, false);
-            startToEnd = new LineFormula(x, y, closest.first, closest.second);
-
-             closestStart = startToEnd.GetClosestValue(startx, starty, false);
-            closestStart = startShape.GetClosestToCircumCircle(closestStart.first, closestStart.second);
-            setStart(closestStart);
-        } else {
-            closestStart = startShape.GetClosestToCircumCircle(x, y, false);
-            LineFormula startlf = new LineFormula(closestStart.first, closestStart.second, x, y);
-            closestStart = startlf.GetClosestValue(startx, starty, false);
-            closestStart = startShape.GetClosestToCircumCircle(closestStart);
-            setStart(closestStart);
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
-
-        if (shapes.size() > 0) {
-
-            closest = AdjustPointToDiatonicRatio(x,y);
-        }
-
         return closest;
-
     }
 
     //if drawing concentric circles we want (diamater of circleA)/(diamater of circleB) == frequency of a note or (diamater of circleB)/(diamater of circleA) == frequency of a note
@@ -552,27 +586,30 @@ public class CustomDrawableView extends View {
     // Then find the point along the line segment (startx,starty),(endx,endy) closest to (endx,endy) that will give a
     //diamater to the circle or circumcircle currently being drawn such that newDiamater/D2 == noteFreq or D2/newDiamater= noteFreq where the larger of (newDiamater,D2) is the numeratord
     Pair<Float,Float> AdjustPointToDiatonicRatio(float x, float y){
-        Pair<Float,Float> closest = new Pair<>(x,y);
-        if (shapes.size() > 0) {
-
-
-            LineFormula lf = new LineFormula(startx, starty, x, y);
-
-            double diamater = Maths.GetDistance(startx, starty, x, y);
-            double shapeDiamater = startShape != null ? startShape.getDiamater() : diamater;
-            double freq = shapeDiamater > diamater ? shapeDiamater / diamater : diamater / shapeDiamater;
-            Pair<Notes, Octave> noteoct = DiatonicScale.findOctive(freq);
-            double notefreq = DiatonicScale.getNoteFrequency(noteoct);
-            double newDiamater = shapeDiamater / notefreq;
-            if (shapeDiamater <= diamater) {
-                newDiamater = shapeDiamater * notefreq;
+        Pair<Float,Float> closest = new Pair<Float,Float>(x,y);
+        try {
+            if (shapes.size() > 0) {
+                LineFormula lf = new LineFormula(startx, starty, x, y);
+                double diamater = Maths.GetDistance(startx, starty, x, y);
+                double shapeDiamater = startShape != null ? startShape.getDiamater() : diamater;
+                double freq = shapeDiamater > diamater ? shapeDiamater / diamater : diamater / shapeDiamater;
+                Pair<Notes, Octave> noteoct = DiatonicScale.findOctave(freq);
+                double notefreq = DiatonicScale.getNoteFrequency(noteoct);
+                double newDiamater = shapeDiamater / notefreq;
+                if (shapeDiamater <= diamater) {
+                    newDiamater = shapeDiamater * notefreq;
+                }
+                closest = lf.findDistantPoint(newDiamater);
+                Pair<Float, Float> samesize = lf.findDistantPoint(startShape.getDiamater());
+                double distance = Maths.GetDistance(x, y, closest);
+                if (Maths.GetDistance(x, y, samesize) <= distance) {
+                    closest = samesize;
+                }
             }
-            closest = lf.findDistantPoint(newDiamater);
-            Pair<Float,Float> samesize = lf.findDistantPoint(startShape.getDiamater());
-            double distance = Maths.GetDistance(x,y,closest);
-            if(Maths.GetDistance(x,y,samesize) <= distance){
-                closest = samesize;
-            }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
         return closest;
     }
@@ -581,47 +618,51 @@ public class CustomDrawableView extends View {
     //inaCircumCircle informs wither the point used to determine (closestX,closestY) is inside a shape or it's circumcircle
     //if inaCircumCircle is true then inShape is the circumcircle of the shape that (closestX,closestY) is inside of.
     private ShapeFormula DetermineInShape(boolean inaCircumCircle, ShapeFormula inShape, float closestX,float closestY){
-        int senario = startset&&!inaCircumCircle?0:
-                !startset&&!inaCircumCircle?1:
-                        startset?2:3;
+        try {
+            int senario = startset && !inaCircumCircle ? 0 :
+                    !startset && !inaCircumCircle ? 1 :
+                            startset ? 2 : 3;
 
-        switch (senario) {
-            //startset && !inaCircumCircle
-            case 0:
-                break;
-            //!startset || inaCircumCircle
-            case 1:
-            case 2:
-            case 3:
-                switch (senario) {
-                    // !startset && !inaCircumCircle
-                    case 1:
-                        //if starting points have not been set and (x,y) is not in a shape, then the starting points are not in a shape
-                        startInCircumCircle = false;
-                        break;
-                    //inaCircumCircle
-                    case 2:
-                    case 3:
-                        if(inShape!=null) {
-                            //find smallest shape that the point (closestX,closestY) is inside of, in case there are shapes within the inshape.
-                            ShapeFormula circumShape = inShape.FindCircumShape(closestX, closestY);
-                            inShape = circumShape != null ? circumShape : inShape;
-                            switch (senario) {
-                                // startset && inaCircumCircle
-                                case 2:
-                                    endShape = inShape;
-                                    break;
-                                // !startset && inaCircumCircle
-                                case 3:
-                                    startInCircumCircle = true;
-                                    startShape = inShape;
-
-                                    break;
+            switch (senario) {
+                //startset && !inaCircumCircle
+                case 0:
+                    break;
+                //!startset || inaCircumCircle
+                case 1:
+                case 2:
+                case 3:
+                    switch (senario) {
+                        // !startset && !inaCircumCircle
+                        case 1:
+                            //if starting points have not been set and (x,y) is not in a shape, then the starting points are not in a shape
+                            startInCircumCircle = false;
+                            break;
+                        //inaCircumCircle
+                        case 2:
+                        case 3:
+                            if (inShape != null) {
+                                //find smallest shape that the point (closestX,closestY) is inside of, in case there are shapes within the inshape.
+                                ShapeFormula circumShape = inShape.FindCircumShape(closestX, closestY);
+                                inShape = circumShape != null ? circumShape : inShape;
+                                switch (senario) {
+                                    // startset && inaCircumCircle
+                                    case 2:
+                                        endShape = inShape;
+                                        break;
+                                    // !startset && inaCircumCircle
+                                    case 3:
+                                        startInCircumCircle = true;
+                                        startShape = inShape;
+                                        break;
+                                }
                             }
-                        }
-                        break;
-                }
-
+                            break;
+                    }
+            }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
         return inShape;
     }
@@ -631,31 +672,26 @@ public class CustomDrawableView extends View {
     //if the closest point is one that intersects the circumcircle of another point, or the starting point has not been set, or the startShape is null then return the closest point found
     //
     private Pair<Float,Float> DeterminePoint(float x, float y){
-
         float closestX;
         float closestY;
         boolean inaCircumCircle;
         ShapeFormula inShape;
-        Pair<Float,Float> closest = new Pair<>(x,y);
-
+        Pair<Float,Float> closest = new Pair<Float,Float>(x,y);
         previousEndShape = endShape;
         endShape = null;
         try {
             Pair<ShapeFormula,Pair<Float,Float>> closestinfo = FindClosest(x,y);
             closestX = closestinfo.second.first;
             closestY = closestinfo.second.second;
-            closest = new Pair<>(closestX,closestY);
+            closest = new Pair<Float,Float>(closestX,closestY);
             boolean endInBounds = startShape!=null?startShape.inBounds(x, y):false;
             if(!startset){
                 startInBounds = closestinfo.first!=null?closestinfo.first.inBounds(x,y):false;
             }
-
             else{
                 if(intersect!=null){
-                    if(!startInBounds  && !endInBounds && !startShape.GetCircumCircle().inBounds(intersect.second.GetCircumCircle()) ){
-
-                    }
-                    else{
+                    //set intersect to null, if the circle it intersects in inside of the startshape and both the starting and endingpoints of the current shape are outside of the startshape
+                    if(!(!startInBounds  && !endInBounds && !startShape.GetCircumCircle().inBounds(intersect.second.GetCircumCircle()) )){
                         intersect = null;
                     }
                 }
@@ -663,12 +699,10 @@ public class CustomDrawableView extends View {
             if(intersect==null &&startset &&startShape!=null){
                 inaCircumCircle = closestinfo.first != null && closestinfo.first.inCircumCircle(x, y);
                 inShape = DetermineInShape(inaCircumCircle, closestinfo.first, closestX, closestY);
-
                 closest = new Pair<>(closestX, closestY);
                 if (startset && startShape != null) {
                     boolean sameShape = inaCircumCircle && (startShape == inShape);
                    // boolean startInBounds = startInCircumCircle && startShape.inBounds(startx, starty);
-
                     if (!startInBounds && !endInBounds) {
                         //the point is not with in the circumcircle of an already exsisting shape
                         if (!inaCircumCircle) {
@@ -682,92 +716,88 @@ public class CustomDrawableView extends View {
                     }
                     else{
                         if(endInBounds){
-
                             endShape = inShape;
                         }
                         else{
-                            if(startInBounds && !endInBounds &&endShape == null){
+                            if(!startShape.inCircumCircle(x,y)&&endShape == null){
                                 closest = AdjustPointToDiatonicRatio(x,y);
                             }
                         }
                     }
                 }
             }
-
         }
         catch(Exception e){
             System.out.println(e.getMessage());
         }
         return closest;
-
     }
 
+    //replay motions minus the last motion
     public void OneLessMotion(){
         playMotionEventsOffset = (playMotionEventsOffset + motionevents.size()) >0?playMotionEventsOffset-1:playMotionEventsOffset;
         PlayMotions();
     }
 
+    //add one to play motionEventsOffset if it is less than 0
     public void OneMoreMotion(){
         playMotionEventsOffset = playMotionEventsOffset< 0?playMotionEventsOffset+1:playMotionEventsOffset;
         PlayMotions();
     }
 
+    //play the drawing motions
     public void PlayMotions(){
-
-        if(motionevents.size() > 0){
-            playmotion = true;
-            this.Clear();
-
-            int mnum = motionevents.size() + playMotionEventsOffset;
-            for(int i = 0; i < mnum; ++i){
-                if(i == mnum-1){
-                    lastMotion = true;
+        try {
+            if (motionevents.size() > 0) {
+                playmotion = true;
+                this.Clear();
+                int mnum = motionevents.size() + playMotionEventsOffset;
+                for (int i = 0; i < mnum; ++i) {
+                    if (i == mnum - 1) {
+                        lastMotion = true;
+                    }
+                    onTouchEvent(motionevents.get(i));
+                    lastMotion = false;
                 }
-                onTouchEvent(motionevents.get(i));
-                lastMotion = false;
-
+                playmotion = false;
             }
-            playmotion = false;
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
     }
 
-    public void SaveMotions(){
-        can.save();
-
-    }
-
-    public void LoadMotion(){}
-
+    //return the shapeType of Formula sf
     private ShapeType DetermineShape(Formula sf){
         ShapeType st = null;
-        if(sf instanceof LineFormula){
-            st = ShapeType.line;
-        }
-        else{
-            if(sf instanceof CircleFormula ){
-                st = ShapeType.circle;
-            }
-            else{
-                if(sf instanceof PolyShapeFormula){
-                    PolyShapeFormula psf = (PolyShapeFormula) sf;
-                    st = ShapeType.GetShapeType(psf.points.length);
+        try {
+            if (sf instanceof LineFormula) {
+                st = ShapeType.line;
+            } else {
+                if (sf instanceof CircleFormula) {
+                    st = ShapeType.circle;
+                } else {
+                    if (sf instanceof PolyShapeFormula) {
+                        PolyShapeFormula psf = (PolyShapeFormula) sf;
+                        st = ShapeType.GetShapeType(psf.points.length);
 
+                    }
                 }
             }
         }
-
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
         return st;
     }
 
-    private void DrawGoldenPoints(Formula f){
-
-        DrawGoldenPoints(f, drawColor);
-    }
-
+    //draw the goldenpoints for formula F with int color
     private void DrawGoldenPoints(Formula f, int color){
         try {
-            Pair<Float, Float> start = new Pair<>(startx, starty);
-            Pair<Float, Float> end = new Pair<>(endx, endy);
+            Pair<Float,Float> start = new Pair<Float,Float>(startx, starty);
+            Pair<Float,Float> end = new Pair<Float,Float>(endx, endy);
             ShapeType st = shape;
 
             if (f != null) {
@@ -789,16 +819,15 @@ public class CustomDrawableView extends View {
             System.out.println(e.getMessage());
         }
     }
-
+    private void DrawGoldenPoints(Formula f){
+        DrawGoldenPoints(f, drawColor);
+    }
     private void UnDrawGoldenPoints() {
         try {
-
             bm = Bitmap.createBitmap((int)canvasWidth, (int)canvasHeight, Bitmap.Config.ARGB_8888);
             can.setBitmap(bm);
             can.drawBitmap(previousBm,0,0,mBitmapPaint);
             can.save();
-
-
             // DrawGoldenPoints(f, backGroundColor);
         }
         catch(Exception e){
@@ -806,26 +835,37 @@ public class CustomDrawableView extends View {
         }
     }
     @Override
+    //reads motions and calls methods to set starting and ending points and to draw canvas depending on the motion
     public boolean onTouchEvent(MotionEvent event) {
         try {
             if(event!=null) {
                 float X = event.getX();
                 float Y = event.getY();
-                Pair<Float, Float> p;
+                Pair<Float,Float> p;
+                //if playmotion is false then add this motion event to the motionevents Vector
                 if (!playmotion) {
                     motionevents.add(MotionEvent.obtain(event));
                 }
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                    //first press on screen which means we are going to
+                    //se the values for startx and starty
                     case MotionEvent.ACTION_DOWN:
                         preX = X;
                         preY = Y;
                         p = DeterminePoint(X, Y);
                         setStart(p.first, p.second);
                         break;
+                    //finger on screen and moving so set the endx,endy values
                     case MotionEvent.ACTION_MOVE:
                         if (preX != X && preY != Y) {
                             p = DeterminePoint(X, Y);
                             setEnd(p.first, p.second);
+                            //if the point (endx,endy) is inside of a shape then draw the goldenpoints for that shape
+                            //if during the next ACTION_MOVE the endshape is the same as the previousEndshape then we don't need to do anthing sense all goldenpoints have
+                            //already been drawn or undrawn as needed
+                            //if the endshape is different from the previousEndShape then the previousEndshape goldenpoints need to be undrawn
+                            //and if the new values for (endx,endy) are in another shape then draw the golden points for that shape
+
                             if(endShape !=previousEndShape){
                                 if(previousEndShape!=null){
                                     UnDrawGoldenPoints();
@@ -837,6 +877,7 @@ public class CustomDrawableView extends View {
                             if (!zoom) {
                                 draw();
                             }
+                            //if the shape's circumcircle just barley intersects another shapes circumcircle, then draw the circumcircle for the shape currently being drawn.
                             if(intersect!=null){
                                 mDrawable.gs.DrawCircumCircle(true);
                             }
@@ -844,13 +885,12 @@ public class CustomDrawableView extends View {
                         }
                         break;
 
-                    //second finger on screen
+                    //second finger on screen means we are zooming in
                     case MotionEvent.ACTION_POINTER_DOWN:
-                        // focusx = startx + ((event.getX() - startx) / 2);
-                        //focusy = starty + ((event.getY() - starty) / 2);
                         zoom = true;
                         break;
 
+                    //all fingers off of the screen, so now we will find and set the endpoint,finalize the shape that was drawn, and reset variables
                     case MotionEvent.ACTION_UP:
                         p = DeterminePoint(X, Y);
                         setEnd(p.first, p.second);
@@ -867,10 +907,10 @@ public class CustomDrawableView extends View {
                         startset = false;
                         endset = false;
                         startShape = null;
-
                         invalidate();
                         zoom = false;
                         previousBm = bm.copy(Bitmap.Config.ARGB_8888,true);
+
 
                         break;
 

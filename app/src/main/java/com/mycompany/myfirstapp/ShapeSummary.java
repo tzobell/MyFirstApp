@@ -1,7 +1,9 @@
 package com.mycompany.myfirstapp;
 
+import java.util.Vector;
+
 /**
- * Created by Owner on 11/23/2015.
+ holds the information to summarize a shape
  */
 public class ShapeSummary {
     public final float startx;
@@ -10,7 +12,7 @@ public class ShapeSummary {
     public final float endy;
     public final ShapeType shape;
     public final Formula sf;
-    public final ShapeFormula addedto;
+    protected final ShapeFormula addedto;
     public final ShapeFormula startShape;
 
     public ShapeSummary(float startx, float starty,float endx,float endy,  ShapeType shape, Formula sf, ShapeFormula addedto,ShapeFormula startShape){
@@ -24,4 +26,13 @@ public class ShapeSummary {
         this.startShape = startShape;
     }
 
+    public Vector<ShapeFormula> GetAssociatedShapes(){
+        Vector<ShapeFormula> accociated = new Vector<>();
+        accociated.add(addedto);
+        return accociated;
+    }
+
 }
+
+
+

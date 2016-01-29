@@ -4,47 +4,39 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
-import android.support.annotation.NonNull;
 import android.util.Pair;
+import android.util.SparseIntArray;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * Created by Owner on 9/23/2015.
+/*
+ handles the playing of different notes
  */
 public class Sound {
-    private Map<Integer,MediaPlayer> mp;
-    private Map<Integer,Integer> audiofiles;
-    private Queue<Pair<Notes,Octave>> noteQ;
-
-
+    private Map<Integer,MediaPlayer> mp;//map of notevalues to sound
+    //private Map<Integer,Integer> audiofiles;
+    private SparseIntArray audiofiles; //map of note values to sound number files
+    private Queue<Pair<Notes,Octave>> noteQ; //queue of notes to play
     Context context;
-    //private  Notes n[] = {Notes.C,Notes.D,Notes.E,Notes.F,Notes.G,Notes.A,Notes.B};
-    private static Sound sound = null;
-    private static boolean play = false;
-
-
-    public static final int MAXNOTENUM= 88;
-    public static final int NOTESPEROCTAVE = 12;
-    public static final int NOTECOUNTOFFSET = 9;
+    private static Sound sound = null; //for singleton
+   
     private Sound(Context context){
         this.context = context;
-        noteQ = new LinkedList<Pair<Notes,Octave>>();
-        audiofiles = new HashMap<Integer,Integer>();
-        mp = new HashMap<Integer,MediaPlayer>();
+        noteQ = new LinkedList<>();
+        //audiofiles = new HashMap<Integer,Integer>();
+        audiofiles = new SparseIntArray(DiatonicScale.notes.length);
+        mp = new HashMap<>();
+
+        //find the sound file index in the raw folder that corresponds to each note value to fill in audiofiles array and mp map
         for(Notes note:DiatonicScale.notes){
             for(Octave octave:Octave.octaves){
-                int noteval = intNoteNum(note,octave);
-                if(noteval >= 0 && noteval <= MAXNOTENUM){
+                
+                int noteval = DiatonicScale.NoteNum(note,octave);
+                if(noteval >= 0 && noteval <= DiatonicScale.MAXNOTENUM){
                     String noteString = NoteToString(note,octave);
                     Resources res = context.getResources();
                     int soundFileId = res.getIdentifier(noteString, "raw", context.getPackageName());
@@ -55,121 +47,101 @@ public class Sound {
         }
     }
 
-
-
+    //re-initilize mp map
     private void initNotes(){
         try {
-
-            mp = new HashMap<Integer,MediaPlayer>();
+            mp = new HashMap<>();
+            //find the sound file index in the raw folder that corresponds to each note value to fill in mp map
             for(Notes note:DiatonicScale.notes){
                 for(Octave octave:Octave.octaves){
-                    int noteval = intNoteNum(note,octave);
-                    if(noteval >= 0 && noteval <= MAXNOTENUM){
+                    int noteval = DiatonicScale.NoteNum(note,octave);
+                    if(noteval >= 0 && noteval <= DiatonicScale.MAXNOTENUM){
                         int soundFileId = audiofiles.get(noteval);
                         mp.put(noteval,MediaPlayer.create(context,soundFileId));
                     }
                 }
             }
-
-
         }
         catch (Exception e) {
-            String a = e.getMessage();
             System.out.println(e.getMessage());
         }
     }
 
-
-
-
-
+    //releases notes from mp Map
     private void releaseNotes(){
         try {
             for(Notes note:DiatonicScale.notes){
                 for(Octave octave:Octave.octaves){
-                    int noteval = intNoteNum(note,octave);
-                    if(noteval >= 0 && noteval <= MAXNOTENUM){
+                    int noteval = DiatonicScale.NoteNum(note,octave);
+                    if(noteval >= 0 && noteval <= DiatonicScale.MAXNOTENUM){
                         mp.get(noteval).release();
-
                     }
                 }
             }
-
             mp = null;
         }
         catch (Exception e) {
-            String a = e.getMessage();
             System.out.println(e.getMessage());
         }
     }
 
-    private static int intNoteNum(Pair<Notes,Octave> n){
-        return intNoteNum(n.first, n.second);
+  
 
-    }
-
-
-    // 88 notes on piano from A0 to C8, A0=1....C8=88
-    //so the note number the value of the note where Value(C) = 1...Value(B) = ValueofNote + (12 * octave) - 9 (sense octave 0 only has 3 notes)
-    private static int intNoteNum(Notes n,Octave octave){
-        int noteval = Notes.inVal(n);
-
-        int  notenum =  (noteval + (NOTESPEROCTAVE *(Octave.toInt(octave)))) - NOTECOUNTOFFSET;
-        return notenum;
-
-    }
-    private static String NoteToString(Pair<Notes,Octave> n){
-        return NoteToString(n.first,n.second);
-    }
+    //returns the string value of Note n at Octave octave
     private static String NoteToString(Notes n, Octave octave){
-        String s  = Notes.toString(n).toLowerCase() + Octave.toString(octave);
-        return s;
-
-
-
+        return  Notes.toString(n).toLowerCase() + Octave.toString(octave);
     }
 
-    private void renewNote(Pair<Notes,Octave> n){
-        renewNote(n.first,n.second);
-    }
+    //removes Notes note at Octave octave from Map mp and then puts in back in
     private void renewNote(Notes note, Octave octave){
         try {
-            int noteval = intNoteNum(note,octave);
+            int noteval = DiatonicScale.NoteNum(note,octave);
             mp.get(noteval).release();
             mp.remove(noteval);
             mp.put(noteval, MediaPlayer.create(context, audiofiles.get(noteval)));
         }
         catch (Exception e) {
-            String a = e.getMessage();
             System.out.println(e.getMessage());
         }
     }
+    private void renewNote(Pair<Notes,Octave> n){
+        renewNote(n.first,n.second);
+    }
 
+    //play the notes in the queue noteQ
     public static void playAll() {
         try {
             if (sound != null && sound.noteQ.size() > 0) {
-                int ms = (sound.noteQ.size() + 1) * 1000;
+                int ms = (sound.noteQ.size() + 1) * 1000;//number of milliseconds to play all the notes in NoteQ
                 CountDownTimer cd = new CountDownTimer(ms, 1000) {
-                    boolean started = false;
                     Pair<Notes,Octave> note = null;
-
                     @Override
                     public void onTick(long millisUntilFinished) {
                         try {
-
+                            //if note is not null then stop the sound file from playing by pausing the sound, and then "rewind" the sound file by calling SeekTo(0) and renewing the note
                             if (note != null) {
-                                int noteval = intNoteNum(note);
-                                sound.mp.get(noteval).pause();
-                                sound.mp.get(noteval).seekTo(0);
-                                sound.renewNote(note);
+                                int noteval = DiatonicScale.NoteNum(note);
+                                try {
+                                    sound.mp.get(noteval).pause();
+                                    sound.mp.get(noteval).seekTo(0);
+                                    sound.renewNote(note);
+                                }
+                                catch (Exception e) {
+                                    System.out.println(e.getMessage());
+                                }
                             }
-                            note = sound.noteQ.poll();
+                            note = sound.noteQ.poll(); //get the next note in the queue
+                            //if note is not null then start the soundfile for that note
                             if (note != null) {
-                                int noteval = intNoteNum(note);
+                                int noteval = DiatonicScale.NoteNum(note);
+                                try {
                                 sound.mp.get(noteval).start();
+                                }
+                                catch (Exception e) {
+                                    System.out.println(e.getMessage());
+                                }
                             }
                         } catch (Exception e) {
-                            String a = e.getMessage();
                             System.out.println(e.getMessage());
                         }
                     }
@@ -177,48 +149,62 @@ public class Sound {
                     @Override
                     public void onFinish() {
                         try {
+                            //pause the current note from playing
                             if(note!=null) {
-                                sound.mp.get(intNoteNum(note)).pause();
+                                sound.mp.get(DiatonicScale.NoteNum(note)).pause();
                             }
+                            //restart notes and clear noteQ
                             sound.releaseNotes();
                             sound.initNotes();
                             sound.noteQ.clear();
                         }
                         catch (Exception e) {
-                            String a = e.getMessage();
                             System.out.println(e.getMessage());
                         }
-
                     }
                 };
                 cd.start();
             }
         }
        catch (Exception e) {
-            String a = e.getMessage();
             System.out.println(e.getMessage());
         }
     }
+    //initilizes singleton
     public static void initSound(Context context){
         if(sound == null){
             sound = new Sound(context);
         }
     }
+    //add note to the noteQ to be played when playall is called
+    public static void AddNote(Notes note, Octave octave){
+        try {
+            int noteval = DiatonicScale.NoteNum(note,octave);
+            if (noteval > DiatonicScale.MAXNOTENUM || noteval < 1) {
+                if (noteval > DiatonicScale.MAXNOTENUM) {
+                    while (DiatonicScale.NoteNum(note, octave) > DiatonicScale.MAXNOTENUM) {
+                        octave = Octave.sub(octave);
+                    }
+                }
 
+                if (noteval < 1) {
+                    while (DiatonicScale.NoteNum(note, octave) < 1) {
+                        octave = Octave.add(octave);
+                    }
+                }
+            }
+
+
+            sound.noteQ.add(new Pair<>(note,octave));
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
     public static void AddNote(Notes note) {
         AddNote(note, Octave.middleOctave);
     }
     public static void AddNote(Pair<Notes,Octave> note) {
         AddNote(note.first,note.second);
-    }
-
-    public static void AddNote(Notes note, Octave octave){
-        try {
-            sound.noteQ.add(new Pair<>(note,octave));
-        }
-        catch (Exception e) {
-            String a = e.getMessage();
-            System.out.println(e.getMessage());
-        }
     }
 }

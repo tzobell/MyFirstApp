@@ -5,14 +5,11 @@ import android.graphics.Paint;
 import android.util.Pair;
 
 /**
- * Created by Owner on 9/11/2015.
+ interface to be implemented by classes that draw formula's
  */
 public interface GoldenShape {
-
-    public Formula[] GetGoldenPoints();
-    //public Formula[] GetGoldenLines();
-    public Formula GetFormula();
-    public void DrawCircumCircle(boolean circumCircle);
-    public void DrawGoldenPoints(boolean drawGpoints);
-
+    Formula[] GetGoldenPoints();
+    Formula GetFormula();
+    void DrawCircumCircle(boolean circumCircle);
+    void DrawGoldenPoints(boolean drawGpoints);
 }

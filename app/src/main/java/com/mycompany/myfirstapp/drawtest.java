@@ -22,7 +22,7 @@ import java.util.List;
 
 
 /**
- * Created by Owner on 8/20/2015.
+
  */
 public class drawtest extends View {
     private ShapeDrawable  mDrawable;

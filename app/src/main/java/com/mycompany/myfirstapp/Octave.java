@@ -1,13 +1,18 @@
 package com.mycompany.myfirstapp;
 
 /**
- * Created by Owner on 11/3/2015.
+ enumeration for octaves
  */
 public enum Octave {
     zero,one,two,three,four,five,six,seven,eight;
 
     public static final Octave octaves[] = { zero,one,two,three,four,five,six,seven,eight};
     public static final Octave middleOctave = four;
+    public static final Octave MAXOCTAVE = eight;
+    public static final Octave MINOCTAVE = zero;
+    public static final int MAXOCTAVEVAL = 8;
+    public static final int MINOCTAVEVAL = 0;
+    //returns the Octave that is one higher than octave
     public static Octave add(Octave octave){
         Octave newoctave = Octave.zero;
         switch(octave){
@@ -42,7 +47,7 @@ public enum Octave {
         return newoctave;
     }
 
-
+    //returns the Octave that is one lower than octave
     public static Octave sub(Octave octave){
         Octave newoctave = Octave.zero;
         switch(octave){
@@ -77,6 +82,7 @@ public enum Octave {
         return newoctave;
     }
 
+    //convert from Octave to int
     public static int toInt(Octave octave){
         int intoct = 0;
         switch(octave){
@@ -112,6 +118,7 @@ public enum Octave {
     }
 
 
+    //convert from int to Octave
     public static Octave toOctave(int octave){
         Octave intoct = zero;
         octave = octave <=8? octave >=0?octave:0:8;
@@ -149,6 +156,7 @@ public enum Octave {
         return intoct;
     }
 
+    //convert to Octave to string
     public static String toString(Octave octave) {
         String val = Integer.toString(toInt(octave));
         return val;

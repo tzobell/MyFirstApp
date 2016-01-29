@@ -5,7 +5,7 @@ import android.graphics.Paint;
 import android.graphics.drawable.shapes.Shape;
 
 /**
- * Created by Owner on 12/11/2015.
+ abstract class that handles setting basic variables
  */
 public abstract class ShapeDraw extends Shape implements GoldenShape {
     protected boolean drawCircumCircle = false;
@@ -13,8 +13,8 @@ public abstract class ShapeDraw extends Shape implements GoldenShape {
     protected Formula formula;
     protected float sWidth;
     protected float sHeight;
-    protected float   mScaleX;    // cached from onResize
-   protected float   mScaleY;    // cached from onResize
+    protected float   mScaleX;
+   protected float   mScaleY;
     public ShapeDraw(float width,float height){
         sWidth = width;
         sHeight = height;
@@ -48,10 +48,8 @@ public abstract class ShapeDraw extends Shape implements GoldenShape {
     protected ShapeDraw clone(ShapeDraw shape){
         shape.sWidth = sWidth;
         shape.sHeight = sHeight;
-        shape.mScaleX = mScaleX;    // cached from onResize
-        shape.mScaleY = mScaleY;    // cached from onResize
-
-        //shape.harmoniousPoints = harmoniousPoints.clone();
+        shape.mScaleX = mScaleX;
+        shape.mScaleY = mScaleY;            //
         return shape;
     }
 }
