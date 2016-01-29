@@ -1,4 +1,4 @@
-package com.mycompany.myfirstapp;
+package com.mycompany.ShapeSounds;
 
 import android.content.Context;
 import android.content.res.Resources;

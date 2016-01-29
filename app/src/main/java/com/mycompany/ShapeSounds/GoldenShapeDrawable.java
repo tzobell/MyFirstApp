@@ -1,16 +1,11 @@
-package com.mycompany.myfirstapp;
+package com.mycompany.ShapeSounds;
 
-import android.content.res.ColorStateList;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.Shape;
-import android.util.Pair;
 
 /**
  class the extends ShapeDrawable and modified to be specifiec to goldenShapes

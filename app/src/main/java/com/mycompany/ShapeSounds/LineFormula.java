@@ -1,4 +1,4 @@
-package com.mycompany.myfirstapp;
+package com.mycompany.ShapeSounds;
 /*
 LineFormula class implements Formula interface and has variables and methods to describe a line segment and to find closest point on the line to another given point
 * */

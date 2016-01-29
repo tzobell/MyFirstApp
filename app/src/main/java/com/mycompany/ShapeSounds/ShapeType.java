@@ -1,4 +1,4 @@
-package com.mycompany.myfirstapp;
+package com.mycompany.ShapeSounds;
 
 /**
  enumeration for different types of shapes and methods

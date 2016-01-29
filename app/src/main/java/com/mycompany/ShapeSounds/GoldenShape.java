@@ -1,8 +1,4 @@
-package com.mycompany.myfirstapp;
-
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.util.Pair;
+package com.mycompany.ShapeSounds;
 
 /**
  interface to be implemented by classes that draw formula's

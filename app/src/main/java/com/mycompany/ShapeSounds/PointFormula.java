@@ -1,8 +1,6 @@
-package com.mycompany.myfirstapp;
+package com.mycompany.ShapeSounds;
 
 import android.util.Pair;
-
-import com.mycompany.myfirstapp.Formula;
 
 /**
  formula that described a point

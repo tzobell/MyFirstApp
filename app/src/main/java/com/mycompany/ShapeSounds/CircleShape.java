@@ -1,13 +1,9 @@
-package com.mycompany.myfirstapp;
+package com.mycompany.ShapeSounds;
 
 import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
-import android.graphics.drawable.shapes.OvalShape;
-import android.graphics.drawable.shapes.Shape;
 import android.util.Pair;
-
-import java.util.Vector;
 
 /**
  handles the  drawing of a circle

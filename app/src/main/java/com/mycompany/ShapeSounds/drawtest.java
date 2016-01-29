@@ -1,24 +1,17 @@
-package com.mycompany.myfirstapp;
+package com.mycompany.ShapeSounds;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
-import android.graphics.drawable.shapes.RectShape;
-import android.graphics.drawable.shapes.ArcShape;
 import android.graphics.drawable.shapes.PathShape;
 
 
-import android.graphics.drawable.shapes.Shape;
 import android.view.MotionEvent;
 import android.view.View;
-
-import java.util.List;
-
 
 
 /**

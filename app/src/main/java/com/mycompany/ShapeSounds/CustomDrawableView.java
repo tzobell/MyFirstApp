@@ -1,4 +1,4 @@
-package com.mycompany.myfirstapp;
+package com.mycompany.ShapeSounds;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,7 +8,6 @@ import android.graphics.Paint;
 import android.graphics.Path;
 
 
-import android.graphics.drawable.shapes.Shape;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
