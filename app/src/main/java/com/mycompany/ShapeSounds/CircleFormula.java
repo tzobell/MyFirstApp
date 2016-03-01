@@ -138,10 +138,10 @@ public class CircleFormula implements ShapeFormula {
     }
 
     public Pair<Float,Float> GetStart(){
-        return new Pair<Float,Float>(h+radius,k+radius);
+        return new Pair<Float,Float>(h,k+radius);
     }
     public Pair<Float,Float> GetEnd(){
-        return new Pair<Float,Float>(h-radius,k-radius);
+        return new Pair<Float,Float>(h,k-radius);
     }
 
     //gets closest point to (x,y) that lies on the circumference or tangent circle
