@@ -483,7 +483,8 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     }
 
     public Pair<Float,Float> GetClosestPoint(float xstart,float ystart,float X,float Y) {
-        return GetClosestPoint(X, Y, true, xstart, ystart);
+        //return GetClosestPoint(X, Y, true, xstart, ystart);
+        return GetClosestPoint(X, Y);
     }
 
 

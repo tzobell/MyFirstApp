@@ -576,6 +576,7 @@ public class CircleFormula implements ShapeFormula {
             if (cf == this) {
                 equal = true;
             } else {
+                double distance = Maths.GetDistance(h,k,cf.h,cf.k);
                 if (Math.abs(cf.h - h) <= .1 && Math.abs(cf.GetCircumCircle().k - k) <= .1 && Math.abs(cf.GetCircumCircle().radius - radius) <= .1) {
                     equal = true;
                 }

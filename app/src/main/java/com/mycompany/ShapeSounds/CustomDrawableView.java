@@ -405,7 +405,7 @@ public class CustomDrawableView extends View {
     double distance = Double.POSITIVE_INFINITY;
     Pair<Float,Float> closest = new Pair<Float,Float>(x, y);
     try {
-        if (thisshape != null && endset ) {
+        if (thisshape != null && endset && !test.GetCircumCircle().equals(startShape.GetCircumCircle()) ) {
             float circleDistance = (float) Maths.CircleDistance(thisshape.GetCircumCircle(), test.GetCircumCircle());
             float predis = (float)Maths.CircleDistance(prevShape.GetCircumCircle(), test.GetCircumCircle());
             if(circleDistance <= 0){
@@ -414,7 +414,7 @@ public class CustomDrawableView extends View {
             if(predis <=0){
                 intersectPrevShapes.add(test);
             }
-            if (!test.GetCircumCircle().equals(startShape.GetCircumCircle()) && Math.abs(circleDistance) <= thresholdDistance) {
+            if ( Math.abs(circleDistance) <= thresholdDistance) {
                 if (intersect == null || intersect.first > Math.abs(circleDistance)) {
                     if (Math.abs(predis) <= initialthresholdDistance) {
                         intersect = Math.abs(predis) < Math.abs(circleDistance) ? new Pair<>(Math.abs(predis), test) : new Pair<>(Math.abs(circleDistance), test);
@@ -444,7 +444,7 @@ public class CustomDrawableView extends View {
             ShapeFormula prevShape = endset?CreateShape(startx, starty, endx, endy, shape):null;
             double distance = Double.POSITIVE_INFINITY;
             for (int i = 0; i < shapes.size(); ++i) {
-                Pair<Float,Float> c = startset ?shapes.get(i).GetClosestPoint( x, y) : shapes.get(i).GetBasicClosestPoint(x, y);// shapes.get(i).GetClosestPoint(startx, starty, x, y) : shapes.get(i).GetBasicClosestPoint(x, y);
+                Pair<Float,Float> c = startset ? shapes.get(i).GetClosestPoint(startx, starty, x, y) : shapes.get(i).GetBasicClosestPoint(x, y);
                 if(startset) {
                     Pair<Float, Float> cc =  shapes.get(i).GetClosestPoint(startx, starty, x, y);
 
