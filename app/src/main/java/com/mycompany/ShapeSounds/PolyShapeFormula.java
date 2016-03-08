@@ -26,7 +26,7 @@ public class PolyShapeFormula implements ShapeFormula {
     //contains all the points in goldenP but with each x and y value at its own index int the vector
     //so instead of index(i) == Pair<Float,Float>(x,y), we have index(i) == x and index(i+1) == y
     float gpoints[];
-private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,float endy){
+    private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,float endy){
     shapepoints = polygonPoints >= 3 ? polygonPoints : 3;
     this.startx = startx;
     this.starty = starty;
@@ -236,14 +236,14 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
                 Pair<Float,Float> p1 = points[i+1];
                 goldenP.add(new PointFormula(p.first,p.second));
                 Side side = determineSide(p, p1);
-                LineFormula lf = new LineFormula(p.first, p.second, p1.first, p1.second, side);
+                LineFormula lf = new LineFormula(p.first, p.second, p1.first, p1.second, side,true);
                 shapeLines.add(lf);
                 goldenP.addAll(Arrays.asList(lf.GetGoldenPoints()));
                 connectingLines.add(lf);
             }
             goldenP.add(new PointFormula(points[shapepoints - 1].first, points[shapepoints - 1].second));
            Side side = determineSide(points[shapepoints - 1], points[0]);
-            LineFormula lf =  new LineFormula(points[shapepoints-1].first, points[shapepoints-1].second, points[0].first, points[0].second, side);
+            LineFormula lf =  new LineFormula(points[shapepoints-1].first, points[shapepoints-1].second, points[0].first, points[0].second, side,true);
             shapeLines.add(lf);
             goldenP.addAll(Arrays.asList(lf.GetGoldenPoints()));
             connectingLines.add(lf);
@@ -483,8 +483,8 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
     }
 
     public Pair<Float,Float> GetClosestPoint(float xstart,float ystart,float X,float Y) {
-        //return GetClosestPoint(X, Y, true, xstart, ystart);
-        return GetClosestPoint(X, Y);
+        return GetClosestPoint(X, Y, true, xstart, ystart);
+        //return GetClosestPoint(X, Y);
     }
 
 
@@ -500,8 +500,11 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
        try {
            double distance = Maths.GetDistance(X, Y, point);
            Pair<Float, Float> tempPoint = startpoints ? testCircle.GetClosestPoint(xstart, ystart, X, Y) : testCircle.GetClosestPoint(X, Y);
-           double tempdistance = Maths.GetDistance(X, Y, tempPoint);
 
+           double tempdistance = Maths.GetDistance(X, Y, tempPoint);
+           if(startpoints && !inBounds(X,Y) && tempdistance < distance){
+               tempPoint =  testCircle.GetClosestPoint(X, Y);
+           }
 
            if (tempdistance < distance) {
                Pair<Boolean, LineFormula> blf = isKeyPoint(point);
@@ -606,12 +609,9 @@ private PolyShapeFormula(int polygonPoints,float startx,float starty,float endx,
         }
         return  new Pair<>(point.first, point.second);
     }
-
     public Pair<Float,Float> GetClosestPoint(float X, float Y) {
        return GetClosestPoint(X, Y, false, null, null);
     }
-
-
     public Pair<Float,Float> GetClosestPoint(Pair<Float,Float> p){
         return GetClosestPoint(p.first, p.second);
     }

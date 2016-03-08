@@ -21,8 +21,11 @@ public class Sound {
     //private Map<Integer,Integer> audiofiles;
     private SparseIntArray audiofiles; //map of note values to sound number files
     private Queue<Pair<Notes,Octave>> noteQ; //queue of notes to play
+
     Context context;
     private static Sound sound = null; //for singleton
+    private Octave highestOctave;
+    private Octave lowestOctave;
    
     private Sound(Context context){
         this.context = context;
@@ -30,6 +33,8 @@ public class Sound {
         //audiofiles = new HashMap<Integer,Integer>();
         audiofiles = new SparseIntArray(DiatonicScale.notes.length);
         mp = new HashMap<>();
+        highestOctave = Octave.middleOctave;
+        lowestOctave = Octave.middleOctave;
 
         //find the sound file index in the raw folder that corresponds to each note value to fill in audiofiles array and mp map
         for(Notes note:DiatonicScale.notes){
@@ -57,7 +62,7 @@ public class Sound {
                     int noteval = DiatonicScale.NoteNum(note,octave);
                     if(noteval >= 0 && noteval <= DiatonicScale.MAXNOTENUM){
                         int soundFileId = audiofiles.get(noteval);
-                        mp.put(noteval,MediaPlayer.create(context,soundFileId));
+                        mp.put(noteval, MediaPlayer.create(context, soundFileId));
                     }
                 }
             }
@@ -108,9 +113,43 @@ public class Sound {
         renewNote(n.first,n.second);
     }
 
+
+    //centers the range of notes in the noteQ around the middle octave as much as possible
+    private void EqualizeNoteQueue(){
+        int octaveOffset = 0;
+        int octaveMid = (int)Maths.Middle(Octave.toInt(lowestOctave),Octave.toInt(highestOctave));
+        octaveOffset = Octave.MIDOCTAVEVAL - octaveMid;
+        Queue<Pair<Notes,Octave>> tempnoteQ = new LinkedList<>();
+        for(Pair<Notes,Octave> n: noteQ) {
+            Notes note = n.first;
+            Octave octave = Octave.toOctave(Octave.toInt(n.second) + octaveOffset);
+            int noteval = DiatonicScale.NoteNum(note, octave);
+            //if note at the Octave octave lies outside of the range of notes available, then adjust the Octave so that it is within the range of notes available
+            if (noteval > DiatonicScale.MAXNOTENUM || noteval < 1) {
+                if (noteval > DiatonicScale.MAXNOTENUM) {
+                    while (DiatonicScale.NoteNum(note, octave) > DiatonicScale.MAXNOTENUM) {
+                        octave = Octave.sub(octave);
+                    }
+                }
+                if (noteval < 1) {
+                    while (DiatonicScale.NoteNum(note, octave) < 1) {
+                        octave = Octave.add(octave);
+                    }
+                }
+            }
+            tempnoteQ.add(new Pair<>(note,octave));
+
+        }
+        noteQ = tempnoteQ;
+
+    }
+
     //play the notes in the queue noteQ
     public static void playAll() {
         try {
+
+           sound.EqualizeNoteQueue();
+
             if (sound != null && sound.noteQ.size() > 0) {
                 int ms = (sound.noteQ.size() + 1) * 1000;//number of milliseconds to play all the notes in NoteQ
                 CountDownTimer cd = new CountDownTimer(ms, 1000) {
@@ -157,6 +196,8 @@ public class Sound {
                             sound.releaseNotes();
                             sound.initNotes();
                             sound.noteQ.clear();
+                            sound.highestOctave = Octave.middleOctave;
+                            sound.lowestOctave = Octave.middleOctave;
                         }
                         catch (Exception e) {
                             System.out.println(e.getMessage());
@@ -164,6 +205,7 @@ public class Sound {
                     }
                 };
                 cd.start();
+
             }
         }
        catch (Exception e) {
@@ -179,22 +221,29 @@ public class Sound {
     //add note to the noteQ to be played when playall is called
     public static void AddNote(Notes note, Octave octave){
         try {
-            int noteval = DiatonicScale.NoteNum(note,octave);
+           /* int noteval = DiatonicScale.NoteNum(note,octave);
+            //if note at the Octave octave lies outside of the range of notes available, then adjust the Octave so that it is within the range of notes available
             if (noteval > DiatonicScale.MAXNOTENUM || noteval < 1) {
                 if (noteval > DiatonicScale.MAXNOTENUM) {
                     while (DiatonicScale.NoteNum(note, octave) > DiatonicScale.MAXNOTENUM) {
                         octave = Octave.sub(octave);
                     }
                 }
-
                 if (noteval < 1) {
                     while (DiatonicScale.NoteNum(note, octave) < 1) {
                         octave = Octave.add(octave);
                     }
                 }
+            }*/
+
+
+            if(Octave.toInt(octave) > Octave.toInt(sound.highestOctave)){
+                sound.highestOctave = octave;
             }
 
-
+            if(Octave.toInt(octave) < Octave.toInt(sound.lowestOctave)){
+                sound.lowestOctave = octave;
+            }
             sound.noteQ.add(new Pair<>(note,octave));
         }
         catch (Exception e) {

@@ -8,6 +8,27 @@ public final class Maths {
 
     public static final double PHI = (1 + Math.sqrt(5)) / 2;
 
+    //finds mid point between x and y
+    public static double Middle (int x, int y){
+        double mid = 0;
+        if( x > y){
+            int tempy = y;
+            y = x;
+            x = tempy;
+        }
+
+        int diff = (y-x)+1;
+        if(diff%2 == 0){
+            mid = (diff/2)+.5;
+        }
+        else{
+            int tmid = diff/2;
+            mid = (double)tmid;
+        }
+
+        return mid;
+    }
+
     //returns distance betweeing (x1,y1) and (x2,y2)
     public static double GetDistance(float x1, float y1, float x2, float y2) {
         return Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));

@@ -10,8 +10,10 @@ public enum Octave {
     public static final Octave middleOctave = four;
     public static final Octave MAXOCTAVE = eight;
     public static final Octave MINOCTAVE = zero;
+    public static final Octave MIDOCTAVE = four;
     public static final int MAXOCTAVEVAL = 8;
     public static final int MINOCTAVEVAL = 0;
+    public static final int MIDOCTAVEVAL = 4;
     //returns the Octave that is one higher than octave
     public static Octave add(Octave octave){
         Octave newoctave = Octave.zero;

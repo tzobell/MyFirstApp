@@ -443,16 +443,9 @@ public class CustomDrawableView extends View {
             ShapeFormula thisshape = CreateShape(startx, starty, x, y, shape);
             ShapeFormula prevShape = endset?CreateShape(startx, starty, endx, endy, shape):null;
             double distance = Double.POSITIVE_INFINITY;
+            //go through each shape, find the closest point in each shape and keep track of the closest one so far
             for (int i = 0; i < shapes.size(); ++i) {
                 Pair<Float,Float> c = startset ? shapes.get(i).GetClosestPoint(startx, starty, x, y) : shapes.get(i).GetBasicClosestPoint(x, y);
-                if(startset) {
-                    Pair<Float, Float> cc =  shapes.get(i).GetClosestPoint(startx, starty, x, y);
-
-                    if(cc.first.floatValue()!=c.first.floatValue() || cc.second.floatValue()!=c.second.floatValue()){
-                        int abc = 123;
-                        abc+=2;
-                    }
-                }
 
                 double tempdis = Maths.GetDistance(p, c);
                 if (tempdis < distance) {
