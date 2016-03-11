@@ -6,7 +6,7 @@
         <item>4</item>
         <item>5</item>
     </string-array>
-    <string name="app_name">Shape Sounds</string>
+    <string name="app_name" >Shape Sounds</string>
 <string name = "play">play</string>
     <string name = "savemotion">save motion</string>
     <string name = "loadmotion">load motion</string>
@@ -15,12 +15,12 @@
     <string name = "onemore">play motion +1</string>
     <string name = "undo">undo</string>
     <string name ="pentagon">pentagon</string>
-    <string name="circle">circle</string>
-    <string name ="square">square</string>
-    <string name="clear">clear</string>
+    <string name="circle">Circle</string>
+    <string name ="square">Square</string>
+    <string name="clear">Clear</string>
     <string name="arc">arc</string>
     <string name="line">line</string>
-    <string name="triangle">triangle</string>
+    <string name="triangle">Triangle</string>
     <string name="button_send">Send</string>
     <string name="button_play">Play</string>
     <string name="button_pause">Pause</string>

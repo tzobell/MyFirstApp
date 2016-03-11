@@ -16,7 +16,7 @@ public class PolyShapeFormula implements ShapeFormula {
     //vector that contains the perimeter lines and the lines that connect a golden point on one perimeter line of the polygon
     // to a golden point an another perimeter line of the polygon
     Vector<LineFormula> connectingLines;
-    Vector<PointFormula> goldenP;//contains all the maint points and golden points for the lines in connectingLines and shapeLines
+    Vector<PointFormula> goldenP;//contains all the main points and golden points for the lines in connectingLines and shapeLines
     //Vector that holds ShapeFormulas that are inside of this shape
     //Vector<ShapeFormula> inside;
 

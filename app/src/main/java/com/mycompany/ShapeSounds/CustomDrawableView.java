@@ -128,8 +128,7 @@ public class CustomDrawableView extends View {
                 Clear();
                 ShapeSummary ls = shapeHistory.get(shapeHistory.size() - 1);
                 Formula f = ls.sf;
-                if (f instanceof ShapeFormula) {
-                    ShapeFormula sf = (ShapeFormula) f;
+                if (f instanceof ShapeFormula) {                    
                     Vector<ShapeFormula> associated = ls.GetAssociatedShapes();
                     for (ShapeFormula shapeformula : associated) {
                         shapeformula.RemoveShape((ShapeFormula) ls.sf);
@@ -163,6 +162,11 @@ public class CustomDrawableView extends View {
         catch(Exception e){
             System.out.println(e.getMessage());
         }
+        startset = false;
+        endset = false;
+        startShape = null;
+        zoom = false;
+        previousBm = bm.copy(Bitmap.Config.ARGB_8888,true);
         undoing = false;
 
 
@@ -209,8 +213,9 @@ public class CustomDrawableView extends View {
     //if f cannot be added to any of the ShapeFormula's in shapes then add f to shapes.
     void AddShape(Formula f){
         try{
-        ShapeFormula insideShape = null;
+        
         if(f instanceof ShapeFormula){
+            ShapeFormula insideShape = null;
             ShapeFormula sf =(ShapeFormula)f;
             boolean added = false;
             if(startShape!=null ){
@@ -236,7 +241,7 @@ public class CustomDrawableView extends View {
         }
         else {
             if (!undoing) {
-                shapeHistory.add(new ShapeSummary(startx, starty, endx, endy, shape, f, insideShape, startShape));
+                shapeHistory.add(new ShapeSummary(startx, starty, endx, endy, shape, f, null, startShape));
             }
         }
         }
@@ -405,7 +410,7 @@ public class CustomDrawableView extends View {
     //if thisshape it is not with in the threshold return x,y with positive infinity as the distance
     private Pair<Double,Pair<Float,Float>> CirclesIntersect(float x, float y,ShapeFormula thisshape, ShapeFormula prevShape, ShapeFormula test) {
     double distance = Double.POSITIVE_INFINITY;
-    Pair<Float,Float> closest = new Pair<Float,Float>(x, y);
+    Pair<Float,Float> closest = new Pair<>(x, y);
     try {
         if (thisshape != null && endset && !test.GetCircumCircle().equals(startShape.GetCircumCircle()) ) {
             float circleDistance = (float) Maths.CircleDistance(thisshape.GetCircumCircle(), test.GetCircumCircle());
@@ -437,13 +442,13 @@ public class CustomDrawableView extends View {
         intersectThisShape.clear();
         intersectPrevShapes.clear();
         intersectShapes.clear();
-        Pair<Float,Float> closest = new Pair<Float,Float>(x,y);
-        Pair<Float,Float> p = new Pair<Float,Float>(x,y);
+        Pair<Float,Float> closest = new Pair<>(x,y);
+        Pair<Float,Float> p = new Pair<>(x,y);
         ShapeFormula closestShape = null;
         intersect=null;
         try {
-            ShapeFormula thisshape = CreateShape(startx, starty, x, y, shape);
-            ShapeFormula prevShape = endset?CreateShape(startx, starty, endx, endy, shape):null;
+            //ShapeFormula thisshape = CreateShape(startx, starty, x, y, shape);
+          //  ShapeFormula prevShape = endset?CreateShape(startx, starty, endx, endy, shape):null;
             double distance = Double.POSITIVE_INFINITY;
             //go through each shape, find the closest point in each shape and keep track of the closest one so far
             for (int i = 0; i < shapes.size(); ++i) {
@@ -458,8 +463,8 @@ public class CustomDrawableView extends View {
                         startShape = shapes.get(i);
                     }
                 }
-                Pair<Double,Pair<Float,Float>> cintersect = CirclesIntersect(x,y,thisshape,prevShape,shapes.get(i));
-                /*if(cintersect!=null && distance > cintersect.first){
+                /*Pair<Double,Pair<Float,Float>> cintersect = CirclesIntersect(x,y,thisshape,prevShape,shapes.get(i));
+                if(cintersect!=null && distance > cintersect.first){
                     distance = cintersect.first;
                     closest = cintersect.second;
                 }*/
@@ -485,7 +490,7 @@ public class CustomDrawableView extends View {
         //to determine if the the line intersects the startshape
         boolean cross = false;
 
-        Pair<Float,Float> closest = new Pair<Float,Float>(x, y);
+        Pair<Float,Float> closest = new Pair<>(x, y);
         try {
             boolean same = (startx == closestX && starty == closestY);
             if (!same) {
@@ -494,8 +499,8 @@ public class CustomDrawableView extends View {
             Pair<Float, Float> closestStart;
             boolean startInB = startInCircumCircle && startShape.inBounds(startx, starty);
             boolean endInBounds = startShape.inBounds(x, y);
-            Pair<Float, Float> closestE = endInBounds ? new Pair<Float, Float>(closestX, closestY) : inShape.GetClosestToPerimeter(closestX, closestY);
-            Pair<Float, Float> closestS = startInB ? new Pair<Float, Float>(startx, starty) : startShape.GetClosestToPerimeter(startx, starty);
+            Pair<Float, Float> closestE = endInBounds ? new Pair<>(closestX, closestY) : inShape.GetClosestToPerimeter(closestX, closestY);
+            Pair<Float, Float> closestS = startInB ? new Pair<>(startx, starty) : startShape.GetClosestToPerimeter(startx, starty);
 
             if (cross) {
                 startToEnd = new LineFormula(closestS.first, closestS.second, closestE.first, closestE.second);
@@ -510,7 +515,7 @@ public class CustomDrawableView extends View {
                     setStart(closestToLine);
                 } else {
                     if (blf.second != null) {
-                        closest = new Pair<Float, Float>(closestX, closestY);
+                        closest = new Pair<>(closestX, closestY);
                         LineFormula perpLine = blf.second.GetPerpindicular(closestX, closestY);
                         closestStart = perpLine.GetClosestValue(startx, starty, false);
                         closestStart = inShape.GetClosestToCircumCircle(closestStart);
@@ -535,7 +540,7 @@ public class CustomDrawableView extends View {
         //to determine if the the line intersects the startshape
         boolean cross = false;
 
-        Pair<Float,Float> closest = new Pair<Float,Float>(x, y);
+        Pair<Float,Float> closest = new Pair<>(x, y);
         try {
             boolean same = (startx == closestX && starty == closestY);
             Pair<Float, Float> closestStart;
@@ -578,7 +583,7 @@ public class CustomDrawableView extends View {
     // Then find the point along the line segment (startx,starty),(endx,endy) closest to (endx,endy) that will give a
     //diamater to the circle or circumcircle currently being drawn such that newDiamater/D2 == noteFreq or D2/newDiamater= noteFreq where the larger of (newDiamater,D2) is the numeratord
     Pair<Float,Float> AdjustPointToDiatonicRatio(float x, float y){
-        Pair<Float,Float> closest = new Pair<Float,Float>(x,y);
+        Pair<Float,Float> closest = new Pair<>(x,y);
         try {
             if (shapes.size() > 0) {
                 LineFormula lf = new LineFormula(startx, starty, x, y);
@@ -668,20 +673,20 @@ public class CustomDrawableView extends View {
         float closestY;
         boolean inaCircumCircle;
         ShapeFormula inShape;
-        Pair<Float,Float> closest = new Pair<Float,Float>(x,y);
+        Pair<Float,Float> closest = new Pair<>(x,y);
         previousEndShape = endShape;
         endShape = null;
         try {
             Pair<ShapeFormula,Pair<Float,Float>> closestinfo = FindClosest(x,y);
             closestX = closestinfo.second.first;
             closestY = closestinfo.second.second;
-            closest = new Pair<Float,Float>(closestX,closestY);
-            boolean endInBounds = startShape!=null?startShape.inBounds(x, y):false;
+            closest = new Pair<>(closestX,closestY);
+            boolean endInBounds = startShape!=null && startShape.inBounds(x, y);
             if(!startset){
-                startInBounds = closestinfo.first!=null?closestinfo.first.inBounds(x,y):false;
+                startInBounds = closestinfo.first!=null &&closestinfo.first.inBounds(x,y);
             }
             else{
-                if(intersect!=null){
+                if(intersect!=null && startShape!= null){
                     //set intersect to null, if the circle it intersects is inside of the startshape and both the starting and endingpoints of the current shape are outside of the startshape
                     if(!(!startInBounds  && !endInBounds && !startShape.GetCircumCircle().inBounds(intersect.second.GetCircumCircle()) )){
                         intersect = null;
@@ -788,8 +793,8 @@ public class CustomDrawableView extends View {
     //draw the goldenpoints for formula F with int color
     private void DrawGoldenPoints(Formula f, int color){
         try {
-            Pair<Float,Float> start = new Pair<Float,Float>(startx, starty);
-            Pair<Float,Float> end = new Pair<Float,Float>(endx, endy);
+            Pair<Float,Float> start = new Pair<>(startx, starty);
+            Pair<Float,Float> end = new Pair<>(endx, endy);
             ShapeType st = shape;
 
             if (f != null) {
