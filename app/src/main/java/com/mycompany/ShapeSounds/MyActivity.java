@@ -7,6 +7,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+
 
 public class MyActivity extends ActionBarActivity {
 
@@ -15,17 +19,43 @@ public class MyActivity extends ActionBarActivity {
    ;
     private static final String DEBUG_TAG = "Gestures";
     private GestureDetectorCompat mDetector;
-
+    private InterstitialAd mInterstitialAd;
     MenuItem menuitem;
     // Called when the activity is first created.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Sound.initSound(this);
-       mCustomDrawableView = new CustomDrawableView(this);
+
+        /*mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)        // All emulators
+                .build();
+
+        mInterstitialAd.loadAd(adRequest);*/
+
+try {
+    /*AdView mAdView = (AdView) findViewById(R.id.adView);
+    AdRequest adRequest = new AdRequest.Builder()
+            .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+            .build();
+    mAdView.loadAd(adRequest);*/
 
 
-        setContentView(mCustomDrawableView);
+    Sound.initSound(this);
+
+    mCustomDrawableView = new CustomDrawableView(this);
+
+
+    setContentView(mCustomDrawableView);
+}
+
+catch(Exception e){
+    String a  = e.getMessage();
+    System.out.println(a);
+}
+
+
 
     }
 
@@ -37,7 +67,7 @@ public class MyActivity extends ActionBarActivity {
            switch (item.getItemId()) {
 
                case R.id.play:
-                   // Sound.Play(Notes.A);
+
                    mCustomDrawableView.Play();
                    result = true;
                    break;

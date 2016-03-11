@@ -1,5 +1,8 @@
 package com.mycompany.ShapeSounds;
 import android.util.Pair;
+
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Vector;
 
 
@@ -83,6 +86,9 @@ public class CircleFormula implements ShapeFormula {
         this(((startx + endx)/2),((starty+endy)/2),(float)(Maths.GetDistance(startx,starty,endx,endy)/2),hasGoldenCircles);
     }
     public CircleFormula GetCircumCircle(){
+        return this;
+    }
+    public CircleFormula GetInCircle(){
         return this;
     }
     public CircleFormula GetTangentCircle(){
@@ -479,11 +485,20 @@ public class CircleFormula implements ShapeFormula {
                     ShapeFormula s = inside.get(i);
                     inside.remove(i);
                     //add any Shapes inside of shape to Vector<> inside
-                    Vector<ShapeFormula> insideremoved = s.GetInsideShapes();
+                    Set<ShapeFormula> insideremoved = new HashSet<>();// = s.GetInsideShapes();
+                    insideremoved.addAll(s.GetInsideShapes());
+                   // Vector<ShapeFormula> insideremoved = s.GetInsideShapes();
+                    insideremoved.addAll(s.GetCircumCircle().GetInsideShapes());
+                    insideremoved.addAll(s.GetInCircle().GetInsideShapes());
                     for (ShapeFormula sf : insideremoved) {
-                        AddShape(sf);
+                       if(sf!=shape.GetInCircle()){
+                           AddShape(sf);
+                       }
                     }
                     i = size;
+                }
+                else{
+                    inside.get(i).RemoveShape(shape);
                 }
             }
         }

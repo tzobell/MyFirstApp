@@ -52,7 +52,7 @@ public class PolyShape extends ShapeDraw {
             //if drawCircumCircle ==true, then draw the circumcircle of the polygon
             if(drawCircumCircle){
                 CircleFormula outcircle = gshape.GetCircumCircle();
-                CircleFormula incircle = gshape.getIncircle();
+                CircleFormula incircle = gshape.GetInCircle();
 
                 canvas.drawCircle(outcircle.h,outcircle.k,outcircle.radius,paint);
                 canvas.drawCircle(incircle.h,incircle.k,incircle.radius,paint);

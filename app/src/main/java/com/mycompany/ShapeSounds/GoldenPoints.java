@@ -23,7 +23,11 @@ public class GoldenPoints {
         PointFormula gpoints[] = new PointFormula[goldennum-2];
         try {
             if(main == true) {
-                gpoints = calcGoldenPoints(startx, starty, endx, endy);
+                gpoints = new PointFormula[3];
+                gpoints[0] = new PointFormula(startx,starty);
+                gpoints[1] = new PointFormula(((startx+endx)/2),((starty+endy)/2));
+                gpoints[2] = new PointFormula(endx,endy);
+                //gpoints = calcGoldenPoints(startx, starty, endx, endy);
             }
             else {
                 PointFormula gpointsA[] = calcGoldenPoints(startx, starty, endx, endy);

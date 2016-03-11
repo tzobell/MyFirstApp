@@ -68,6 +68,8 @@ public class CustomDrawableView extends View {
     //constructor
     public CustomDrawableView(Context context) {
         super(context);
+
+
         shapes = new Vector<>();
         intersectShapes = new Vector<>();
         intersectThisShape=new Vector<>();
@@ -139,9 +141,9 @@ public class CustomDrawableView extends View {
                             i = size;
                         }
                     }
-                    for (ShapeFormula s : sf.GetInsideShapes()) {
-                        AddShape(s);
-                    }
+                    //for (ShapeFormula s : sf.GetInsideShapes()) {
+                     //   AddShape(s);
+                   // }
                 }
             }
             shapeHistory.remove(shapeHistory.size() - 1);
@@ -457,15 +459,15 @@ public class CustomDrawableView extends View {
                     }
                 }
                 Pair<Double,Pair<Float,Float>> cintersect = CirclesIntersect(x,y,thisshape,prevShape,shapes.get(i));
-                if(cintersect!=null && distance > cintersect.first){
+                /*if(cintersect!=null && distance > cintersect.first){
                     distance = cintersect.first;
                     closest = cintersect.second;
-                }
+                }*/
 
             }
-            if(intersect!=null &&distance < intersect.first){
+            //if(intersect!=null &&distance < intersect.first){
                 intersect = null;
-            }
+           // }
             intersectShapes= closest.first == endx && closest.second == endy?intersectPrevShapes:intersectThisShape;
 
         }
@@ -680,7 +682,7 @@ public class CustomDrawableView extends View {
             }
             else{
                 if(intersect!=null){
-                    //set intersect to null, if the circle it intersects in inside of the startshape and both the starting and endingpoints of the current shape are outside of the startshape
+                    //set intersect to null, if the circle it intersects is inside of the startshape and both the starting and endingpoints of the current shape are outside of the startshape
                     if(!(!startInBounds  && !endInBounds && !startShape.GetCircumCircle().inBounds(intersect.second.GetCircumCircle()) )){
                         intersect = null;
                     }

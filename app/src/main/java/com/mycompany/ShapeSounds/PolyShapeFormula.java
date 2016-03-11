@@ -182,7 +182,7 @@ public class PolyShapeFormula implements ShapeFormula {
     public CircleFormula GetTangentCircle(){
         return circumcircle.GetTangentCircle();
     }
-    public CircleFormula getIncircle(){
+    public CircleFormula GetInCircle(){
         return incircle;
     }
 
@@ -236,14 +236,14 @@ public class PolyShapeFormula implements ShapeFormula {
                 Pair<Float,Float> p1 = points[i+1];
                 goldenP.add(new PointFormula(p.first,p.second));
                 Side side = determineSide(p, p1);
-                LineFormula lf = new LineFormula(p.first, p.second, p1.first, p1.second, side,true);
+                LineFormula lf = new LineFormula(p.first, p.second, p1.first, p1.second, side);
                 shapeLines.add(lf);
                 goldenP.addAll(Arrays.asList(lf.GetGoldenPoints()));
                 connectingLines.add(lf);
             }
             goldenP.add(new PointFormula(points[shapepoints - 1].first, points[shapepoints - 1].second));
            Side side = determineSide(points[shapepoints - 1], points[0]);
-            LineFormula lf =  new LineFormula(points[shapepoints-1].first, points[shapepoints-1].second, points[0].first, points[0].second, side,true);
+            LineFormula lf =  new LineFormula(points[shapepoints-1].first, points[shapepoints-1].second, points[0].first, points[0].second, side);
             shapeLines.add(lf);
             goldenP.addAll(Arrays.asList(lf.GetGoldenPoints()));
             connectingLines.add(lf);
