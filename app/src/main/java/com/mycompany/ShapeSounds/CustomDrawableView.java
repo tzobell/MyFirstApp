@@ -123,9 +123,11 @@ public class CustomDrawableView extends View {
     // remove references to the last shape drawn and redraw without the last shape drawn.
     public void Undo() {
         try {
+            ShapeType curShape = shape;
             if (shapeHistory.size() > 0) {
                 undoing = true;
                 Clear();
+
                 ShapeSummary ls = shapeHistory.get(shapeHistory.size() - 1);
                 Formula f = ls.sf;
                 if (f instanceof ShapeFormula) {                    
@@ -157,6 +159,7 @@ public class CustomDrawableView extends View {
                 invalidate();
                 newCanvas(false);
             }
+            shape = curShape;
         }
 
         catch(Exception e){
@@ -220,9 +223,11 @@ public class CustomDrawableView extends View {
             boolean added = false;
             if(startShape!=null ){
                 sf.AddConnectedShape(startShape);
+                startShape.AddConnectedShape(sf);
             }
             for(ShapeFormula sfi:intersectShapes){
                 sf.AddConnectedShape(sfi);
+                sfi.AddConnectedShape(sf);
             }
             for(int i = 0; i < shapes.size(); ++i){
                 Pair<Boolean,ShapeFormula> bs = shapes.get(i).AddShape(sf);
@@ -870,7 +875,7 @@ public class CustomDrawableView extends View {
                                 if(endShape!=null ){
                                     DrawGoldenPoints(endShape);
                                 }
-                            }
+                            }*/
                             if (!zoom) {
                                 draw();
                             }

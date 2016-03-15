@@ -147,10 +147,10 @@ public class Sound {
     //play the notes in the queue noteQ
     public static void playAll() {
         try {
-           sound.EqualizeNoteQueue();
             if (sound != null && sound.noteQ.size() > 0) {
-                int ms = (sound.noteQ.size() + 1) * 1000;//number of milliseconds to play all the notes in NoteQ
-                CountDownTimer cd = new CountDownTimer(ms, 1000) {
+                sound.EqualizeNoteQueue();
+                int ms = (sound.noteQ.size() + 1) * 750;//number of milliseconds to play all the notes in NoteQ
+                CountDownTimer cd = new CountDownTimer(ms, 750) {
                     Pair<Notes,Octave> note = null;
                     @Override
                     public void onTick(long millisUntilFinished) {

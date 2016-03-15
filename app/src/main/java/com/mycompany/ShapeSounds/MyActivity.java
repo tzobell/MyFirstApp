@@ -176,7 +176,7 @@ catch(Exception e){
 
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_activity_actions, menu);
-        if(BuildConfig.DEBUG){
+        if(!BuildConfig.DEBUG){
             MenuItem  mi = menu.findItem(R.id.polygon);
             mi.getSubMenu().removeItem(R.id.line);
             menu.removeItem(R.id.playmotion);

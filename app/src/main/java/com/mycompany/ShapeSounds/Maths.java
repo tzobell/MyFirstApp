@@ -93,23 +93,24 @@ public final class Maths {
         double x2 = Double.NaN;
 
         //extend circle formulas
-        //circle a = (x-ha)^2 + (y-ka)^2 = ra^2 => x^2 - 2hax + ha^2 + y^2 -2hay + ka^2 = ra^2
-        //circle b = (x-hb)^2 + (y-kb)^2 = rb^2 => x^2 - 2hbx + hb^2 + y^2 -2hby + kb^2 = rb^2
+        //circle a = (x-ha)^2 + (y-ka)^2 = ra^2 => x^2 - 2hax + ha^2 + y^2 -2kay + ka^2 = ra^2
+        //circle b = (x-hb)^2 + (y-kb)^2 = rb^2 => x^2 - 2hbx + hb^2 + y^2 -2kby + kb^2 = rb^2
 
         // times first formula by -1
-        // -1(x^2 - 2hax + ha^2 + y^2 -2hay + ka^2 = ra^2) =>
-        // -x^2 + 2hax - ha^2 - y^2 + 2hay - ka^2 = -ra^2
+        // -1(x^2 - 2hax + ha^2 + y^2 -2kay + ka^2 = ra^2) =>
+        //   -x^2 + 2hax - ha^2 - y^2 + 2kay - ka^2 = -ra^2
 
         //add formulas together to eliminate x^2
-        //   -x^2 + 2hax - ha^2 - y^2 + 2hay - ka^2 = -ra^2
+        //   -x^2 + 2hax - ha^2 - y^2 + 2kay - ka^2 = -ra^2
         //   +
-        //   x^2 - 2hbx + hb^2 + y^2 - 2hby + kb^2 =  rb^2
+        //   x^2 - 2hbx + hb^2 + y^2 - 2kby + kb^2 =  rb^2
         // ____________________________________________________
-        // 2hax -2hbx -ha^2 + hb^2 +2hay - 2hby - ka^2 + kb^2 = rb^2 - ra^2 =>
-        // 2hax -2hbx -ha^2 + hb^2 +2hay - 2hby - ka^2 + kb^2 - rb^2 + ra^2 = 0
+        // 2hax -2hbx -ha^2 + hb^2 +2kay - 2kby - ka^2 + kb^2 = rb^2 - ra^2 =>
+        // 2hax -2hbx -ha^2 + hb^2 +2kay - 2kby - ka^2 + kb^2 - rb^2 + ra^2 = 0 =>
+        // 2hax -2hbx +2kay - 2kby -ha^2 + hb^2  - ka^2 + kb^2 - rb^2 + ra^2 = 0
 
         // double nx = (2 * ha * x) - (2 * hb * x)
-        // double iy = (2*ha*y) - (2*hb*y)
+        // double iy = (2*ka*y) - (2*kb*y)
         // double num =  hb^2 - ha^2  + kb^2 - ka^2 + ra^2 - rb^2
 
         double n = 2 * (a.h - b.h);
@@ -122,15 +123,15 @@ public final class Maths {
         //sub x for (-iy-num)/n in (x^2 - 2hax + ha^2 + y^2 -2hay + ka^2 = ra^2)
         //x^2 - 2hax + ha^2 + y^2 -2hay + ka^2 = ra^2=>
         //((-iy-num)/n)^2 - 2((-iy-num)/n)ha + ha^2 + y^2 -2hay + ka^2 = ra^2 =>
-        //(iy^2)/n^2 +(((2*i*num)y)/n^2 + (num^2)/n^2 +  (2*ha*i)y/n + 2*ha/n  + ha^2 + y^2 -2hay + ka^2 -ra^2=0
+        //(iy^2)/n^2 +(((2*i*num)y)/n^2 + (num^2)/n^2 +  (2*ha*i)y/n + 2*ha*num/n  + ha^2 + y^2 -2hay + ka^2 -ra^2=0
 
         //Ay^2 = (iy^2)/n^2 + y^2
         //By = (((2*i*num)y)/n^2 +  (2*ha*i)y/n - 2hay
-        //C = (num^2)/n^2  + 2*ha/n  + ha^2   + ka^2 -ra^2
+        //C = (num^2)/n^2  + 2*ha * num/n  + ha^2   + ka^2 -ra^2
 
         double A = (Math.pow(i, 2) / Math.pow(n, 2)) + 1;
-        double B = (2 * i * num / Math.pow(n, 2) / Math.pow(n, 2)) + ((2 * a.h * i) / n) - (2 * a.k);
-        double C = (Math.pow(num, 2) / Math.pow(n, 2)) + ((2 * a.h) / n) + Math.pow(a.h, 2) + Math.pow(a.k, 2) - Math.pow(a.radius, 2);
+        double B = ((2 * i * num)  / Math.pow(n, 2)) + ((2 * a.h * i) / n) - (2 * a.k);
+        double C = (Math.pow(num, 2) / Math.pow(n, 2)) + ((2 * a.h * num) / n) + Math.pow(a.h, 2) + Math.pow(a.k, 2) - Math.pow(a.radius, 2);
 
         //Ay^2 + By + C = 0
         //find answers to equation with quadradic formula
@@ -197,15 +198,17 @@ public final class Maths {
             Pair<Float,Float> A = new Pair<Float,Float>(a.h, a.k);
             Pair<Float,Float> B = new Pair<Float,Float>(b.h, b.k);
             double d = Math.abs(GetDistance(A, B));//distance from center of circle a to center of circle c
-            Pair<Boolean, Boolean> overlap = CirclesOverlap(a, b, d);
-            if (overlap.first || overlap.second) {
-                //if distance between center of a and center of b is less than radius of a - radius of b, then circle b is completely inside circle a
-                if (overlap.second) {
-                    area = b.Area();
-                }
+
+           // Pair<Boolean, Boolean> overlap = CirclesOverlap(a, b, d);
+            Pair<Boolean, Pair<Pair<Float,Float>, Pair<Float,Float>>> overlap = CirclesIntersectPoints(a,b);
+            if (overlap.first) {
                 //circles partially overlap
-                else {
                     if (overlap.first) {
+                        Pair<Float,Float> mid = new Pair<>(((overlap.second.first.first + overlap.second.second.first)/2),((overlap.second.first.second + overlap.second.second.second)/2));
+                        //find distance from the center of each circle to the midpoint of the line that connects the points where circle a and circle b intersect at
+                        double distanceA = Maths.GetDistance(A,mid);
+                        double distanceB = Maths.GetDistance(B,mid);
+                        double cordLength = Maths.GetDistance(overlap.second.first,overlap.second.second);
                         //area of circle sector = (theta/2) * r^2
                         //point C and D are the points at which circle a and b intersect
                         //theta = angle CAD of triangle ACD
@@ -214,20 +217,29 @@ public final class Maths {
                         //cos = adjacent/hypotenuse
                         //adjacent = d/2
                         //hypotenuse = radius of circle a or line segment DA
-                        //cos(theta/2) = (d/2)/r => theta/2 = cox^-1(d/2r) => theta = 2cos^-1(d/2r)
-                        double thetaA = 2 * Math.acos(d / (2 * a.radius));
+                        //cos(theta/2) = (distanceA)/r => theta/2 = cox^-1(d/r) => theta = 2cos^-1(d/r)
+                        double thetaA = 2 * Math.acos(distanceA / a.radius);
+                        double triangleAheight = Math.sqrt(Math.pow(a.radius,2) - Math.pow((cordLength/2),2));
                         //compute area of circle sector for circle a
                         double ACDSector = (thetaA / 2) * a.radius * a.radius;
                         //area of triangle = (r^2)/2 * sin(theta)
                         double triangle_ACD_Area = .5 * Math.pow(a.radius, 2) * Math.sin(thetaA);
                         double areasegmentA = ACDSector - triangle_ACD_Area;
                         //repeat for circle b
-                        double thetaB = 2 * Math.acos(d / (2 * b.radius));
+                        double triangleBheight = Math.sqrt(Math.pow(b.radius,2) - Math.pow((cordLength/2),2));
+                        double thetaB = 2 * Math.acos(distanceB / (b.radius));
                         double BCDSector = (thetaB / 2) * b.radius * b.radius;
                         double triangle_BCD_Area = .5 * Math.pow(b.radius, 2) * Math.sin(thetaB);
                         double areasegmentB = BCDSector - triangle_BCD_Area;
                         area = areasegmentA + areasegmentB;
                     }
+
+            }
+            else{
+                 Pair<Boolean, Boolean> overlapB = CirclesOverlap(a, b, d);
+                //if distance between center of a and center of b is less than radius of a - radius of b, then circle b is completely inside circle a
+                if (overlapB.second) {
+                    area = b.Area();
                 }
             }
         } catch (Exception e) {

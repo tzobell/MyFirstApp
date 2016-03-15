@@ -7,7 +7,7 @@
         android:icon="@drawable/triangle"
         android:id="@+id/polygon"
         android:title="@string/polygon"
-        app:showAsAction="ifRoom">
+        app:showAsAction="always">
 
         <menu>
             <item android:id="@+id/line"
@@ -39,7 +39,7 @@
 
     <item android:id = "@+id/play"
         android:title="play"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item android:id="@+id/clear"
         android:title="@string/clear"
@@ -59,6 +59,6 @@
 
     <item android:id="@+id/undo"
         android:title="@string/undo"
-        app:showAsAction="ifRoom"        />
+        app:showAsAction="always"        />
 
 </menu>

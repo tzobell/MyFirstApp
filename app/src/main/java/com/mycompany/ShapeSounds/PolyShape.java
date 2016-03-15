@@ -61,11 +61,6 @@ public class PolyShape extends ShapeDraw {
             //if drawGoldenPoints == true then draw the golden points of the polygon
             if(drawGoldenPoints) {
 
-                Vector<LineFormula> connectingLines = gshape.connectingLines;
-                for (LineFormula lf:connectingLines) {
-                    canvas.drawLine(lf.startx,lf.starty,lf.endx,lf.endy, paint);
-                }
-
                 float[] gpts = gshape.getPoints();
                 float width = paint.getStrokeWidth();
                 paint.setStrokeWidth((float) gshape.getDiamater() / 100);

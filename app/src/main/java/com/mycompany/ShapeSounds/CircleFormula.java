@@ -50,17 +50,17 @@ public class CircleFormula implements ShapeFormula {
                // tangentcircle = new CircleFormula(h, k, (float) ((4 - (Math.sqrt(3) * radius)) / (float) Math.sqrt(3)), false, false);
             }
             if (hasGoldenCircles) {
-                goldencircles.add(new PointFormula(h, k));
+               goldencircles.add(new PointFormula(h, k));
                 for (Notes note : DiatonicScale.notes) {
                     goldencircles.add(new CircleFormula(h, k, DiatonicScale.radiusCircle(note, radius), false));
                 }
-                for (int n = 3; n < 13; ++n) {
-                    if (n != 4 && n != 6) {
+                for (int n = 3; n < 7; ++n) {
+                    //if (n != 4 && n != 6) {
                         double apothem = radius * (Math.cos((Math.PI / n)));
                         double s = apothem * 2 * Math.tan((Math.PI / n));
                         float gradius = (float) (s / (2 * Math.tan(Math.PI / n)));
                         goldencircles.add(new CircleFormula(h, k, gradius, false, false));
-                    }
+                    //}
                 }
             } else {
                 goldencircles.add(this);
@@ -564,7 +564,8 @@ public class CircleFormula implements ShapeFormula {
 
     public void AddConnectedShape(ShapeFormula sf){
         try {
-            if ( (float) Maths.CircleDistance(this,sf.GetCircumCircle()) <=0)
+            float dis = (float) Maths.CircleDistance(this,sf.GetCircumCircle());
+            if ( dis <=0)
             {
                 int addindexval = 0;
                 while (addindexval < connectedShapes.size() && connectedShapes.get(addindexval).getDiamater() > sf.getDiamater()) {

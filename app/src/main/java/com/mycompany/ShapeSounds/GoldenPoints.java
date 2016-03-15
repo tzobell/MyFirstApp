@@ -20,7 +20,7 @@ public class GoldenPoints {
     //points are sorted in the array in order of closest to (startx,stary) to furthest away from (startx,starty)
     public static PointFormula[] getGoldenPoints(float startx, float starty, float endx, float endy, boolean main){
         int index = 0;
-        PointFormula gpoints[] = new PointFormula[goldennum-2];
+        PointFormula gpoints[] = new PointFormula[goldennum-4];
         try {
             if(main == true) {
                 gpoints = new PointFormula[3];
@@ -34,11 +34,14 @@ public class GoldenPoints {
                 PointFormula gpointsB[] = calcGoldenPoints(startx, starty, gpointsA[2].x, gpointsA[2].y);
                 PointFormula gpointsC[] = calcGoldenPoints(gpointsA[0].x, gpointsA[0].y, endx, endy);
                 Vector<Pair<PointFormula,Double>> distances = new Vector<>();
-                for (int i = 0; i < gpointsB.length-1; ++i) {
+                /*for (int i = 0; i < gpointsB.length-1; ++i) {
                     if (gpointsB[i] != null) {
                         gpoints[index++] = gpointsB[i];
                     }
-                }
+                }*/
+
+                gpoints[index++] = gpointsB[0];
+
 
                 for (int i = 0; i < gpointsA.length; ++i) {
                     if (gpointsA[i] != null) {
@@ -46,11 +49,12 @@ public class GoldenPoints {
                     }
                 }
 
-                for (int i = 1; i < gpointsC.length; ++i) {
+                /*for (int i = 1; i < gpointsC.length; ++i) {
                     if (gpointsC[i] != null) {
                         gpoints[index++] = gpointsC[i];
                     }
-                }
+                }*/
+                gpoints[index++] = gpointsC[2];
 
                 for(int i = 0; i < gpoints.length; ++i) {
                     double tempdis = Maths.GetDistance(startx, starty, gpoints[i]);
