@@ -8,7 +8,7 @@ public enum Notes {
 
 
     //convert from a note to an int
-    public static int inVal(Notes note){
+    public static int intVal(Notes note){
         int val = 1;
         /*C = 1   D = 3   E = 5  F = 6    G = 8   A = 10    B = 12*/
         switch (note){

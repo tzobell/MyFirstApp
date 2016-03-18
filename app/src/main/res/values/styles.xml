@@ -1,8 +1,22 @@
 <resources>
-
+    <color name="white_opaque">#FFFFFFFF</color>
+    <color name="dividercolor">#00000000 </color>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light">
-        <!-- Customize your theme here. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+
+
+
+
+      <!--
+        <item name="android:colorBackground">@color/white_opaque</item>'
+        <item name ="android:itemBackground">@color/white_opaque</item>
+        <item name = "android:actionBarItemBackground">@color/white_opaque</item>
+
+        <item name="android:divider">@color/dividercolor</item>
+        <item name="dividerPadding">12dip</item>
+        -->
+         <!-- Customize your theme here. -->
     </style>
 
 </resources>

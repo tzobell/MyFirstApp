@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 
 
+import android.util.AttributeSet;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -68,8 +69,17 @@ public class CustomDrawableView extends View {
     //constructor
     public CustomDrawableView(Context context) {
         super(context);
+        init();
 
 
+    }
+
+    public CustomDrawableView(Context context, AttributeSet attrs){
+        super(context,attrs);
+        init();
+    }
+
+     private void init(){
         shapes = new Vector<>();
         intersectShapes = new Vector<>();
         intersectThisShape=new Vector<>();
@@ -91,17 +101,20 @@ public class CustomDrawableView extends View {
         thresholdDistance = 32;
         initialthresholdDistance = 3;
     }
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        canvasHeight = h;
-        canvasWidth = w;
-        can = new Canvas(bm);
-        backGroundColor = bm.getPixel(0,0);
-        drawingBm = bm;
-
+        try {
+            super.onSizeChanged(w, h, oldw, oldh);
+            bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            canvasHeight = h;
+            canvasWidth = w;
+            can = new Canvas(bm);
+            backGroundColor = bm.getPixel(0, 0);
+            drawingBm = bm;
+        }
+        catch(Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     @Override
@@ -447,9 +460,11 @@ public class CustomDrawableView extends View {
         intersectThisShape.clear();
         intersectPrevShapes.clear();
         intersectShapes.clear();
-        Pair<Float,Float> closest = new Pair<>(x,y);
+        Pair<Float,Float> closest = new Pair<>(x,y);//closest point to x,y
+        Pair<Float,Float> closestInBounds = null;//closest point to x,y thats inside a shape
         Pair<Float,Float> p = new Pair<>(x,y);
         ShapeFormula closestShape = null;
+        ShapeFormula closetInboundShape = null;//shape that closestInBounds is on/in
         intersect=null;
         try {
             //ShapeFormula thisshape = CreateShape(startx, starty, x, y, shape);
@@ -464,6 +479,10 @@ public class CustomDrawableView extends View {
                     closest = c;
                     distance = tempdis;
                     closestShape = shapes.get(i);
+                    if(closestShape.inBounds(c)){
+                        closestInBounds = c;
+                        closetInboundShape = closestShape;
+                    }
                     if (!startset) {
                         startShape = shapes.get(i);
                     }
@@ -474,6 +493,11 @@ public class CustomDrawableView extends View {
                     closest = cintersect.second;
                 }*/
 
+            }
+
+            if(!startset && closestInBounds!= null && closetInboundShape!= null && closetInboundShape.inBounds(x,y)){
+                closest = closestInBounds;
+                startShape = closetInboundShape;
             }
             //if(intersect!=null &&distance < intersect.first){
                 intersect = null;
@@ -868,7 +892,7 @@ public class CustomDrawableView extends View {
                             //if the endshape is different from the previousEndShape then the previousEndshape goldenpoints need to be undrawn
                             //and if the new values for (endx,endy) are in another shape then draw the golden points for that shape
 
-                            if(endShape !=previousEndShape){
+                           /* if(endShape !=previousEndShape){
                                 if(previousEndShape!=null){
                                     UnDrawGoldenPoints();
                                 }

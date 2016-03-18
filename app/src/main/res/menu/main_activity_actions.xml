@@ -1,15 +1,20 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
+    android:layout_gravity="center_horizontal">
     >
 
+
+    <!--
     <item
         android:icon="@drawable/triangle"
         android:id="@+id/polygon"
         android:title="@string/polygon"
         app:showAsAction="always">
 
-        <menu>
+
+        <menu android:layout_gravity="center_horizontal">
+
+
             <item android:id="@+id/line"
                 android:icon="@drawable/line"
                 android:title="@string/line"/>
@@ -24,41 +29,70 @@
 
             <item android:id="@+id/pentagon"
                 android:icon="@drawable/pentagon"
-                android:title="@string/pentagon"/>
+                android:title="@string/pentagon"
+
+                />
 
             <item android:id="@+id/hexagon"
                 android:icon="@drawable/hexagon"
-                android:title="@string/hexagon"/>
+                android:title="@string/hexagon"
+
+                />
 
             <item android:id="@+id/circle"
                 android:icon="@drawable/circle"
                 android:title="@string/circle"/>
+
         </menu>
 
     </item>
 
+
+
     <item android:id = "@+id/play"
+        android:icon="@drawable/play"
         android:title="play"
         app:showAsAction="always" />
 
+
+
+    <item android:id="@+id/undo"
+        android:icon="@drawable/undo"
+        android:title="@string/undo"
+        app:showAsAction="always"        />
+
+
+
+    <item android:id="@+id/Navigate"
+        android:icon="@drawable/compass"
+        android:title="@string/Nav"
+        app:showAsAction="always"/>
+
+
+
     <item android:id="@+id/clear"
+        android:icon="@drawable/clear"
         android:title="@string/clear"
         app:showAsAction="ifRoom"        />
 
+
+
     <item android:id="@+id/playmotion"
         android:title="@string/playmotion"
-        app:showAsAction="ifRoom"        />
+        app:showAsAction="never"        />
+
 
     <item android:id="@+id/oneless"
         android:title="@string/oneless"
-        app:showAsAction="ifRoom"        />
+        app:showAsAction="never"        />
+
+
 
     <item android:id="@+id/onemore"
         android:title="@string/onemore"
-        app:showAsAction="ifRoom"        />
+        app:showAsAction="never"        />
 
-    <item android:id="@+id/undo"
-        android:title="@string/undo"
-        app:showAsAction="always"        />
+
+-->
 
 </menu>

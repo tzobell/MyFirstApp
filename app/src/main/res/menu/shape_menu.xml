@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/line"
+        android:icon="@drawable/line"
+        android:title="@string/line"
+
+        />
+
+    <item android:id="@+id/triangle"
+        android:icon="@drawable/triangle"
+        android:title="@string/triangle"/>
+
+    <item android:id="@+id/square"
+        android:icon="@drawable/square"
+        android:title="@string/square"/>
+
+    <item android:id="@+id/pentagon"
+        android:icon="@drawable/pentagon"
+        android:title="@string/pentagon"
+
+        />
+
+    <item android:id="@+id/hexagon"
+        android:icon="@drawable/hexagon"
+        android:title="@string/hexagon"
+
+        />
+
+    <item android:id="@+id/circle"
+        android:icon="@drawable/circle"
+        android:title="@string/circle"/>
+</menu>

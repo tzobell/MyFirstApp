@@ -169,7 +169,7 @@ public class CircleFormula implements ShapeFormula {
             double distance = Maths.GetDistance(x, y, h, k);
             //in==false
             if (!in) {
-                double den = (Math.sqrt((Math.pow((x - h), 2) + Math.pow((y - k), 2))));
+                float den = ((float)Math.sqrt(((float)Math.pow((x - h), 2) + (float)Math.pow((y - k), 2))));
                 closestX = (float) (h + (radius * ((x - h) / den)));//(x > (radius + h) || x < (h - radius)) ? (x > radius + h) ? radius + h : radius - h : x;
                 closestY = (float) (k + (radius * ((y - k) / den)));//((float) Math.sqrt((radius * radius) - Math.pow((closestX - h), 2)) * (y >= k ? 1.0f : -1.0f)) + k;
                 double tempdis = Maths.GetDistance(closestX, closestY, x, y);
@@ -268,6 +268,9 @@ public class CircleFormula implements ShapeFormula {
                 double frequency = area / (Math.PI * (Math.pow((sh.getDiamater() / 2), 2)));
                 sh.Play();
                 play(frequency);
+                frequency = area / (area - (Math.PI * (Math.pow((sh.getDiamater() / 2), 2))) );
+                play(frequency);
+                PlayInside(sh.GetInsideShapes());
             }
             for (ShapeFormula sh : connectedShapes) {
                 double distance = Maths.CircleDistance(this, sh.GetCircumCircle());
@@ -279,11 +282,29 @@ public class CircleFormula implements ShapeFormula {
                 double pDiamater = sh.getDiamater();
                 double frequency = pDiamater > diamater ? pDiamater / diamater : diamater / pDiamater;
                 play(frequency);
+
+                if(sh.GetInCircle()!=sh.GetCircumCircle()){
+                    pDiamater = sh.GetInCircle().getDiamater();
+                    frequency = pDiamater > diamater ? pDiamater / diamater : diamater / pDiamater;
+                    play(frequency);
+                }
             }
         }
         catch (Exception e){
             String a  = e.getMessage();
             System.out.println(a);
+        }
+    }
+
+    private void PlayInside(Vector<ShapeFormula> in) {
+        double area = Area();
+        for (ShapeFormula sh : in) {
+            double frequency = area / (Math.PI * (Math.pow((sh.getDiamater() / 2), 2)));
+
+            play(frequency);
+            frequency = area / (area - (Math.PI * (Math.pow((sh.getDiamater() / 2), 2))));
+            play(frequency);
+            PlayInside(sh.GetInsideShapes());
         }
     }
 
@@ -307,7 +328,7 @@ public class CircleFormula implements ShapeFormula {
     //other wise the point (x,y) lies outside of the circumference of the circle
     public boolean inBounds(float x, float y){
         boolean isin = false;
-        double dis = Maths.GetDistance(x, y, h, k);
+        float dis = (float)Maths.GetDistance(x, y, h, k);
         if(dis <= radius){
             isin = true;
         }
@@ -518,6 +539,7 @@ public class CircleFormula implements ShapeFormula {
                     for (ShapeFormula sfi : inside) {
                         sfi.GetCircumCircle().RemoveShapeConnecting(shape);
                     }
+                    shape.RemoveShape(this);
                 }
             }
         }
@@ -565,7 +587,8 @@ public class CircleFormula implements ShapeFormula {
     public void AddConnectedShape(ShapeFormula sf){
         try {
             float dis = (float) Maths.CircleDistance(this,sf.GetCircumCircle());
-            if ( dis <=0)
+
+            if ( dis <=0.000001)
             {
                 int addindexval = 0;
                 while (addindexval < connectedShapes.size() && connectedShapes.get(addindexval).getDiamater() > sf.getDiamater()) {

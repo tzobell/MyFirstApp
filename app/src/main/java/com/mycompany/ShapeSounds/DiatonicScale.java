@@ -46,7 +46,7 @@ public class DiatonicScale {
                     octave = Octave.MINOCTAVEVAL;
                 }
             }
-            int noteval = Notes.inVal(n);
+            int noteval = Notes.intVal(n);
             val = (noteval + (NOTESPEROCTAVE * (octave))) - NOTECOUNTOFFSET;
         }
         catch (Exception e){
