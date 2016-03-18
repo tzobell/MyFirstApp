@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 
 
+import android.os.CountDownTimer;
 import android.util.AttributeSet;
 import android.util.Pair;
 import android.view.MotionEvent;
@@ -212,17 +213,19 @@ public class CustomDrawableView extends View {
     }
 
     //play the sounds of the shapes
-    public void Play(){
+    public void QueUpForPlay(){
+        CountDownTimer cd = null;
         try {
             for (ShapeFormula sf : shapes) {
                 sf.Play();
             }
-            Sound.playAll();
+            //cd = Sound.playAll();
         }
         catch (Exception e){
             String a  = e.getMessage();
             System.out.println(a);
         }
+        //return cd;
     }
 
     //if f is an instance of ShapeFormula then try adding f to a shapeFormula in vector<ShapeFormula> shapes.

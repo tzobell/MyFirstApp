@@ -2,6 +2,7 @@ package com.mycompany.ShapeSounds;
 
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.CountDownTimer;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -19,8 +20,12 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Vector;
 
 
 public class MyActivity extends ActionBarActivity {
@@ -29,13 +34,13 @@ public class MyActivity extends ActionBarActivity {
     CustomDrawableView mCustomDrawableView;
     private ImageButton drawButton;
     private ImageButton playButton;
+    private ImageButton stopButton;
     private ImageButton navButton;
+    private ImageButton clearButton;
+    private ImageButton undoButton;
     private ImageButton selectedButton;
-    private static final String DEBUG_TAG = "Gestures";
-    private GestureDetectorCompat mDetector;
     private InterstitialAd mInterstitialAd;
-    int shape_images[] = {R.drawable.triangle,R.drawable.square,R.drawable.pentagon,R.drawable.hexagon,R.drawable.line,R.drawable.circle};
-
+    private CustomCountDownTimer player = null;
     MenuItem menuitem;
     // Called when the activity is first created.
     @Override
@@ -71,19 +76,79 @@ try {
 
     drawButton = (ImageButton) findViewById(R.id.drawButton);
     playButton = (ImageButton) findViewById(R.id.playButton);
+    stopButton = (ImageButton) findViewById(R.id.stopButton);
     navButton = (ImageButton) findViewById(R.id.navButton);
-    drawButton.setBackgroundColor(Color.TRANSPARENT);
-    playButton.setBackgroundResource(R.drawable.raised);
-    navButton.setBackgroundResource(R.drawable.raised);
-    drawButton.setBackgroundResource(R.drawable.lowered);
+    clearButton = (ImageButton) findViewById(R.id.clearButton);
+    undoButton = (ImageButton) findViewById(R.id.undoButton);
 
+
+    playButton.setBackgroundResource(R.drawable.button_custom);
+    stopButton.setBackgroundResource(R.drawable.button_custom);
+    navButton.setBackgroundResource(R.drawable.button_custom);
+    clearButton.setBackgroundResource(R.drawable.button_custom);
+    undoButton.setBackgroundResource(R.drawable.button_custom);
+    drawButton.setBackgroundResource(R.drawable.button_custom);
+
+    drawButton.setSelected(true);
     selectedButton = drawButton;
+
+    clearButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            mCustomDrawableView.Clear();
+        }
+    });
+
+    undoButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            mCustomDrawableView.Undo();
+        }
+    });
+
+
+    stopButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if(playButton.isSelected() && player!=null){
+                player.stop();
+                player = null;
+            }
+        }
+    });
+
     playButton.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            raiseLowerButtons(playButton);
-            mCustomDrawableView.Play();
 
+            mCustomDrawableView.QueUpForPlay();
+            player = Sound.playAll(Arrays.asList(new ImageButton[]{selectedButton, drawButton, playButton, clearButton, undoButton}), new Ifunction() {
+                ImageButton selectBtn = selectedButton;
+                ImageButton playBtn = playButton;
+
+                @Override
+                public void execute(Object o) {
+                    ImageButton btn = (ImageButton) o;
+                    if(btn == playBtn){
+                        playBtn.setSelected(false);
+                    }
+                    else {
+                        btn.setEnabled(true);
+                        if (btn == selectBtn) {
+                            selectBtn.setSelected(true);
+                        }
+                    }
+
+                }
+            });
+            if(player!=null) {
+                playButton.setSelected(true);
+                selectedButton.setSelected(false);
+                drawButton.setEnabled(false);
+                clearButton.setEnabled(false);
+                undoButton.setEnabled(false);
+                player.start();
+            }
         }
     });
 
@@ -150,6 +215,7 @@ try {
             } else {
                 raiseLowerButtons(drawButton);
             }
+
         }
     });
 
@@ -167,9 +233,9 @@ catch(Exception e){
 
     private void raiseLowerButtons(ImageButton clickedButton){
         if(selectedButton!=clickedButton){
-            clickedButton.setBackgroundResource(R.drawable.lowered);
+            clickedButton.setSelected(true);
             if(selectedButton!=null){
-                selectedButton.setBackgroundResource(R.drawable.raised);
+                selectedButton.setSelected(false);
             }
             selectedButton = clickedButton;
         }

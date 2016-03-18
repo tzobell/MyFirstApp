@@ -1,15 +1,10 @@
-
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-
-
-        android:layout_width="match_parent"
-            xmlns:ads="http://schemas.android.com/apk/res-auto"
-        android:layout_height="match_parent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    android:layout_height="match_parent"
         android:orientation="horizontal"
-
-            android:layout_gravity="center"
-        >
+            android:layout_gravity="center">
             <android.support.v7.widget.Toolbar
                 android:id="@+id/my_toolbar"
                 android:layout_width="match_parent"
@@ -18,44 +13,52 @@
                 android:elevation="4dp"
                 android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
                 popupTheme="@style/ThemeOverlay.AppCompat.Light">
-
-
-                    <ImageButton
-                        android:id="@+id/drawButton"
-                        android:focusable="true"
-                        android:src="@drawable/triangle"
-                        android:layout_width="?attr/actionBarSize"
-                        android:layout_height="?attr/actionBarSize"
-                        android:scaleType="fitCenter"
-                        />
-                    <ImageButton
-                        android:id = "@+id/playButton"
-                        android:focusable="true"
-                        android:src="@drawable/play"
-                        android:layout_width="?attr/actionBarSize"
-                        android:layout_height="?attr/actionBarSize"
-                        android:scaleType="fitCenter"
-                        />
-                    <ImageButton
-                        android:id="@+id/navButton"
-                        android:focusable="true"
-                        android:src="@drawable/compass"
-                        android:layout_width="?attr/actionBarSize"
-                        android:layout_height="?attr/actionBarSize"
-                        android:scaleType="fitCenter"
-                        />
-
-
-
-
-                </android.support.v7.widget.Toolbar>
-
-            <com.mycompany.ShapeSounds.CustomDrawableView
-                android:id="@+id/drawView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentBottom="true" />
-
-
-
-        </RelativeLayout>
+                <ImageButton
+                    android:id="@+id/drawButton"
+                    android:focusable="true"
+                    android:src="@drawable/triangle"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:scaleType="fitCenter"/>
+                <ImageButton
+                    android:id = "@+id/playButton"
+                    android:focusable="true"
+                    android:src="@drawable/play"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:scaleType="fitCenter"/>
+                <ImageButton
+                    android:id = "@+id/stopButton"
+                    android:focusable="true"
+                    android:src="@drawable/stop"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:scaleType="fitCenter"/>
+                <ImageButton
+                    android:id="@+id/navButton"
+                    android:focusable="true"
+                    android:src="@drawable/compass"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:scaleType="fitCenter"/>
+                <ImageButton
+                    android:id="@+id/undoButton"
+                    android:focusable="true"
+                    android:src="@drawable/undo"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:scaleType="fitCenter"/>
+                <ImageButton
+                    android:id="@+id/clearButton"
+                    android:focusable="true"
+                    android:src="@drawable/clear"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:scaleType="fitCenter"/>
+            </android.support.v7.widget.Toolbar>
+    <com.mycompany.ShapeSounds.CustomDrawableView
+        android:id="@+id/drawView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true" />
+</RelativeLayout>

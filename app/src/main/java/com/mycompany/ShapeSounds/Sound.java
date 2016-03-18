@@ -7,6 +7,7 @@ import android.os.CountDownTimer;
 import android.util.Pair;
 import android.util.SparseIntArray;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -145,12 +146,15 @@ public class Sound {
     }
 
     //play the notes in the queue noteQ
-    public static void playAll() {
+    public static CustomCountDownTimer  playAll(final Collection collection,final Ifunction finishFunc) {
+        CustomCountDownTimer cd = null;
         try {
             if (sound != null && sound.noteQ.size() > 0) {
                 sound.EqualizeNoteQueue();
                 int ms = (sound.noteQ.size() + 1) * 750;//number of milliseconds to play all the notes in NoteQ
-                CountDownTimer cd = new CountDownTimer(ms, 750) {
+                cd = new CustomCountDownTimer(ms, 750) {
+                    Ifunction f = finishFunc;
+                    Collection c = collection;
                     Pair<Notes,Octave> note = null;
                     @Override
                     public void onTick(long millisUntilFinished) {
@@ -196,18 +200,39 @@ public class Sound {
                             sound.noteQ.clear();
                             sound.highestOctave = null;
                             sound.lowestOctave = null;
+                            execute();
+
                         }
                         catch (Exception e) {
                             System.out.println(e.getMessage());
                         }
                     }
+                    //execute Ifunction f on collection c when coundown stops or finishes
+                    private void execute(){
+                        if(f!=null && c!= null){
+                            for(Object o:c){
+                                f.execute(o);
+                            }
+                        }
+                    }
+                    @Override
+                    public void stop(){
+                        cancel();
+                        onFinish();
+
+                    }
                 };
-                cd.start();
+                //cd.start();
+
             }
         }
        catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        return cd;
+    }
+    public static CustomCountDownTimer  playAll(){
+        return playAll(null,null);
     }
     //initilizes singleton
     public static void initSound(Context context){
