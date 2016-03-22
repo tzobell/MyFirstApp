@@ -125,12 +125,14 @@ try {
             player = Sound.playAll(Arrays.asList(new ImageButton[]{selectedButton, drawButton, playButton, clearButton, undoButton}), new Ifunction() {
                 ImageButton selectBtn = selectedButton;
                 ImageButton playBtn = playButton;
+                CustomDrawableView cdv = mCustomDrawableView;
 
                 @Override
                 public void execute(Object o) {
                     ImageButton btn = (ImageButton) o;
                     if(btn == playBtn){
                         playBtn.setSelected(false);
+                        cdv.CanDraw(true);
                     }
                     else {
                         btn.setEnabled(true);
@@ -147,6 +149,7 @@ try {
                 drawButton.setEnabled(false);
                 clearButton.setEnabled(false);
                 undoButton.setEnabled(false);
+                mCustomDrawableView.CanDraw(false);
                 player.start();
             }
         }
@@ -156,6 +159,7 @@ try {
         @Override
         public void onClick(View v) {
             raiseLowerButtons(navButton);
+            mCustomDrawableView.Zoom(true);
         }
     });
 
@@ -235,6 +239,9 @@ catch(Exception e){
         if(selectedButton!=clickedButton){
             clickedButton.setSelected(true);
             if(selectedButton!=null){
+                if(selectedButton == navButton){
+                    mCustomDrawableView.Zoom(false);
+                }
                 selectedButton.setSelected(false);
             }
             selectedButton = clickedButton;

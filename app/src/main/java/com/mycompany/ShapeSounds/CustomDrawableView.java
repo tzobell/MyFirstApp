@@ -8,9 +8,15 @@ import android.graphics.Paint;
 import android.graphics.Path;
 
 
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.CountDownTimer;
+import android.os.SystemClock;
+import android.support.v4.view.GestureDetectorCompat;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.util.Pair;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -23,9 +29,9 @@ import java.util.Vector;
 public class CustomDrawableView extends View {
     private GoldenShapeDrawable  mDrawable;
     private ScaleGestureDetector detector;
+    private GestureDetectorCompat mGestureDetector;
     private Paint mBitmapPaint;
     Canvas can = null;
-
     Bitmap bm = null;
     Bitmap previousBm = null;
     Bitmap drawingBm = null;
@@ -63,9 +69,13 @@ public class CustomDrawableView extends View {
     boolean startInBounds = false;
     boolean playmotion = false;
     boolean zoom = false;
+    boolean zoomMotion = false;
     int drawColor = Color.BLACK;
     int backGroundColor = Color.WHITE;
+    boolean drawing = true;
 
+    Rect currentRect;
+    float focusX,focusY;
 
     //constructor
     public CustomDrawableView(Context context) {
@@ -86,6 +96,7 @@ public class CustomDrawableView extends View {
         intersectThisShape=new Vector<>();
         intersectPrevShapes=new Vector<>();
         detector = new ScaleGestureDetector(getContext(), new ScaleListener());
+         mGestureDetector = new GestureDetectorCompat(getContext(), mGestureListener);;
         shape = ShapeType.triangle;
         endy=0;
         endx=0;
@@ -112,6 +123,7 @@ public class CustomDrawableView extends View {
             can = new Canvas(bm);
             backGroundColor = bm.getPixel(0, 0);
             drawingBm = bm;
+
         }
         catch(Exception e) {
             System.out.println(e.getMessage());
@@ -123,10 +135,12 @@ public class CustomDrawableView extends View {
         try {
             super.onDraw(canvas);
             canvas.save();
-            canvas.scale(scaleFactor, scaleFactor, this.detector.getFocusX(), this.detector.getFocusY());
+            canvas.scale(scaleFactor, scaleFactor, this.focusX, this.focusY);
+            currentRect = canvas.getClipBounds();
             canvas.drawBitmap(bm, 0, 0, mBitmapPaint);
             mDrawable.draw(canvas);
             canvas.restore();
+
         }
         catch(Exception e){
             System.out.println(e.getMessage());
@@ -863,37 +877,67 @@ public class CustomDrawableView extends View {
             System.out.println(e.getMessage());
         }
     }
+
+    public void Zoom(boolean zooming){
+        zoom = zooming;
+
+    }
+
+
+    public void CanDraw(boolean canDraw){
+        drawing = canDraw;
+    }
+
+
+    public float GetRealValue(float eventVal, float focusVal){
+
+        float realVal = focusVal > eventVal? focusVal + ((eventVal - focusVal) / scaleFactor): focusVal - (( focusVal - eventVal) / scaleFactor);
+        return realVal;
+
+    }
+
+
     @Override
     //reads motions and calls methods to set starting and ending points and to draw canvas depending on the motion
     public boolean onTouchEvent(MotionEvent event) {
         try {
             if(event!=null) {
-                float X = event.getX();
-                float Y = event.getY();
+
+
+               /* float X = ((event.getX() - this.focusX) * scaleFactor) +  this.focusX;
+                float Y = ((event.getY()- this.focusX) * scaleFactor) +  this.focusX;*/
+
+                float X = GetRealValue(event.getX(),this.focusX);//Vthis.focusX > event.getX()? this.focusX + ((event.getX() - this.focusX) / scaleFactor): this.focusX - (( this.focusX - event.getX()) / scaleFactor);
+                float Y = GetRealValue(event.getY(), this.focusY);//this.focusY > event.getY()? this.focusY + ((event.getY() - this.focusY) / scaleFactor): this.focusY - (( this.focusY - event.getY()) / scaleFactor);
+
                 Pair<Float,Float> p;
                 //if playmotion is false then add this motion event to the motionevents Vector
                 if (!playmotion) {
                     motionevents.add(MotionEvent.obtain(event));
                 }
-                switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                    //first press on screen which means we are going to
-                    //se the values for startx and starty
-                    case MotionEvent.ACTION_DOWN:
-                        preX = X;
-                        preY = Y;
-                        p = DeterminePoint(X, Y);
-                        setStart(p.first, p.second);
-                        break;
-                    //finger on screen and moving so set the endx,endy values
-                    case MotionEvent.ACTION_MOVE:
-                        if (preX != X && preY != Y) {
-                            p = DeterminePoint(X, Y);
-                            setEnd(p.first, p.second);
-                            //if the point (endx,endy) is inside of a shape then draw the goldenpoints for that shape
-                            //if during the next ACTION_MOVE the endshape is the same as the previousEndshape then we don't need to do anthing sense all goldenpoints have
-                            //already been drawn or undrawn as needed
-                            //if the endshape is different from the previousEndShape then the previousEndshape goldenpoints need to be undrawn
-                            //and if the new values for (endx,endy) are in another shape then draw the golden points for that shape
+                if(drawing) {
+                    if (!zoom) {
+
+
+                        switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                            //first press on screen which means we are going to
+                            //se the values for startx and starty
+                            case MotionEvent.ACTION_DOWN:
+                                preX = X;
+                                preY = Y;
+                                p = DeterminePoint(X, Y);
+                                setStart(p.first, p.second);
+                                break;
+                            //finger on screen and moving so set the endx,endy values
+                            case MotionEvent.ACTION_MOVE:
+                                if (preX != X && preY != Y) {
+                                    p = DeterminePoint(X, Y);
+                                    setEnd(p.first, p.second);
+                                    //if the point (endx,endy) is inside of a shape then draw the goldenpoints for that shape
+                                    //if during the next ACTION_MOVE the endshape is the same as the previousEndshape then we don't need to do anthing sense all goldenpoints have
+                                    //already been drawn or undrawn as needed
+                                    //if the endshape is different from the previousEndShape then the previousEndshape goldenpoints need to be undrawn
+                                    //and if the new values for (endx,endy) are in another shape then draw the golden points for that shape
 
                            /* if(endShape !=previousEndShape){
                                 if(previousEndShape!=null){
@@ -903,50 +947,76 @@ public class CustomDrawableView extends View {
                                     DrawGoldenPoints(endShape);
                                 }
                             }*/
-                            if (!zoom) {
-                                draw();
-                            }
-                            //if the shape's circumcircle just barley intersects another shapes circumcircle, then draw the circumcircle for the shape currently being drawn.
-                            if(intersect!=null){
-                                mDrawable.gs.DrawCircumCircle(true);
-                            }
-                            invalidate();
-                        }
-                        break;
+                                    if (!zoom) {
+                                        draw();
+                                    }
+                                    //if the shape's circumcircle just barley intersects another shapes circumcircle, then draw the circumcircle for the shape currently being drawn.
+                                    if (intersect != null) {
+                                        mDrawable.gs.DrawCircumCircle(true);
+                                    }
+                                    invalidate();
+                                }
+                                break;
 
-                    //second finger on screen means we are zooming in
-                    case MotionEvent.ACTION_POINTER_DOWN:
-                        zoom = true;
-                        break;
+                            //second finger on screen means we are zooming in
+                       /* case MotionEvent.ACTION_POINTER_DOWN:
+                            zoom = true;
+                            break;*/
 
-                    //all fingers off of the screen, so now we will find and set the endpoint,finalize the shape that was drawn, and reset variables
-                    case MotionEvent.ACTION_UP:
-                        p = DeterminePoint(X, Y);
-                        setEnd(p.first, p.second);
-                        if (!zoom) {
-                            if (endShape!=null){
-                                UnDrawGoldenPoints();
-                            }
-                            draw();
-                            mDrawable.gs.DrawCircumCircle(true);
-                            //mDrawable.gs.DrawGoldenPoints(true);
-                            invalidate();
-                            newCanvas();
+                            //all fingers off of the screen, so now we will find and set the endpoint,finalize the shape that was drawn, and reset variables
+                            case MotionEvent.ACTION_UP:
+                                p = DeterminePoint(X, Y);
+                                setEnd(p.first, p.second);
+                                if (!zoom) {
+                                    if (endShape != null) {
+                                        UnDrawGoldenPoints();
+                                    }
+                                    draw();
+                                    mDrawable.gs.DrawCircumCircle(true);
+                                    //mDrawable.gs.DrawGoldenPoints(true);
+                                    invalidate();
+                                    newCanvas();
+                                }
+                                startset = false;
+                                endset = false;
+                                startShape = null;
+                                invalidate();
+                                zoom = false;
+                                previousBm = bm.copy(Bitmap.Config.ARGB_8888, true);
+
+
+                                break;
+
+                            case MotionEvent.ACTION_POINTER_UP:
+                                break;
                         }
-                        startset = false;
-                        endset = false;
-                        startShape = null;
+
+
+                    }
+                    if (zoom) {
+
+                        switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                            case MotionEvent.ACTION_POINTER_DOWN:
+                                zoomMotion = true;
+                               break;
+
+                            case MotionEvent.ACTION_POINTER_UP:
+                                zoomMotion = false;
+
+                        }
+                        if(zoomMotion) {
+
+                            detector.onTouchEvent(event);
+                            focusX = detector.getFocusX();
+                            focusY = detector.getFocusY();
+                        }
+                        else{
+                            mGestureDetector.onTouchEvent(event);
+
+                        }
                         invalidate();
-                        zoom = false;
-                        previousBm = bm.copy(Bitmap.Config.ARGB_8888,true);
-
-
-                        break;
-
-                    case MotionEvent.ACTION_POINTER_UP:
-                        break;
+                    }
                 }
-                detector.onTouchEvent(event);
             }
         }
         catch(Exception e){
@@ -960,11 +1030,15 @@ public class CustomDrawableView extends View {
     public class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         private  float MIN_ZOOM = 1f;
         private  float MAX_ZOOM = 10f;
+
+
+
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             try {
                 scaleFactor *= detector.getScaleFactor();
                 scaleFactor = Math.max(MIN_ZOOM, Math.min(scaleFactor, MAX_ZOOM));
+
             }
             catch(Exception e){
                 System.out.println(e.getMessage());
@@ -973,5 +1047,103 @@ public class CustomDrawableView extends View {
 
             return true;
         }
+
+
+
+
+
     }
+
+
+
+    private final GestureDetector.SimpleOnGestureListener mGestureListener
+            = new GestureDetector.SimpleOnGestureListener() {
+
+
+       /* @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }*/
+
+        public void onShowPress(MotionEvent e){
+
+        }
+        @Override
+        public boolean onSingleTapUp(MotionEvent e){
+            return true;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent e){}
+
+       /* @Override
+       public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY){
+            return onScroll(e1,e2,Math.abs(e1.getX() - e2.getX()),Math.abs(e1.getY() - e2.getY()));
+        }*/
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            if(scaleFactor > 1) {
+                float x1 = GetRealValue(e1.getX(), focusX);
+                float y1 = GetRealValue(e1.getY(), focusY);
+
+                float xx1 = e1.getX();
+                float yy1 = e1.getY();
+
+                float x2 = GetRealValue(e2.getX(), focusX);
+                float y2 = GetRealValue(e2.getY(), focusY);
+
+                float xx2 = e2.getX();
+                float yy2 = e2.getY();
+
+                float dx = x1 > x2 ? x1 - x2 : x2 - x1;
+                float dy = y1 > y2 ? y1 - y2 : y2 - y1;
+
+                Rect r = new Rect(currentRect);
+                float rwidth = r.right - r.left;
+                float rheight = r.bottom - r.top;
+
+                if (dx > dy) {
+                    if (x2 > x1) {
+                        if ((r.left - dx) < 0) {
+                            dx = r.left;
+                        }
+
+                        r.left -= dx;
+                        r.right -= dx;
+
+                    } else {
+                        if ((r.right + dx) > canvasWidth) {
+                            dx = canvasWidth - r.right;
+                        }
+
+                        r.left += dx;
+                        r.right += dx;
+                    }
+                } else {
+
+                    if (y2 > y1) {
+                        if ((r.top - dy) < 0) {
+                            dy = r.top;
+                        }
+                        r.top -= dy;
+                        r.bottom -= dy;
+                    } else {
+                        if ((r.bottom + dy) > canvasHeight) {
+                            dy = canvasHeight - r.bottom;
+                        }
+
+                        r.top += dy;
+                        r.bottom += dy;
+                    }
+                }
+                focusX = (-1 * scaleFactor * r.left) / (1 - scaleFactor);
+                focusY = (-1 * scaleFactor * r.top) / (1 - scaleFactor);
+            }
+
+            return true;
+        }
+
+    };
+
+
 }
