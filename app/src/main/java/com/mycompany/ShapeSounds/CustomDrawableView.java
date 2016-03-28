@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 
@@ -31,6 +32,7 @@ public class CustomDrawableView extends View {
     private ScaleGestureDetector detector;
     private GestureDetectorCompat mGestureDetector;
     private Paint mBitmapPaint;
+    Matrix drawMatrix;
     Canvas can = null;
     Bitmap bm = null;
     Bitmap previousBm = null;
@@ -57,6 +59,9 @@ public class CustomDrawableView extends View {
     private float height;
     private float preX;
     private float preY;
+    float lastFocusX;
+    float lastFocusY;
+    float focusX,focusY;
     float canvasWidth = 0;
     float canvasHeight = 0;
     boolean lastMotion = false;
@@ -74,8 +79,8 @@ public class CustomDrawableView extends View {
     int backGroundColor = Color.WHITE;
     boolean drawing = true;
 
-    Rect currentRect;
-    float focusX,focusY;
+    RectF currentRect;
+   // float focusX,focusY;
 
     //constructor
     public CustomDrawableView(Context context) {
@@ -90,29 +95,31 @@ public class CustomDrawableView extends View {
         init();
     }
 
-     private void init(){
-        shapes = new Vector<>();
-        intersectShapes = new Vector<>();
-        intersectThisShape=new Vector<>();
-        intersectPrevShapes=new Vector<>();
-        detector = new ScaleGestureDetector(getContext(), new ScaleListener());
-         mGestureDetector = new GestureDetectorCompat(getContext(), mGestureListener);;
-        shape = ShapeType.triangle;
-        endy=0;
-        endx=0;
-        startx=0;
-        starty=0;
-        width = 0;
-        height = 0;
-        mBitmapPaint = new Paint();//Paint.DITHER_FLAG
-        mDrawable = new GoldenShapeDrawable(new PolyShape(1,0,0,0,0,0,0));
-        mDrawable.getPaint().setColor(drawColor);
-        mDrawable.setBounds(0, 0, 0, 0);
-        motionevents = new Vector<>();
-        shapeHistory = new Vector<>();
-        thresholdDistance = 32;
-        initialthresholdDistance = 3;
-    }
+     private void init() {
+         shapes = new Vector<>();
+         intersectShapes = new Vector<>();
+         intersectThisShape = new Vector<>();
+         intersectPrevShapes = new Vector<>();
+         detector = new ScaleGestureDetector(getContext(), new ScaleListener());
+         mGestureDetector = new GestureDetectorCompat(getContext(), mGestureListener);
+         shape = ShapeType.triangle;
+         endy = 0;
+         endx = 0;
+         startx = 0;
+         starty = 0;
+         width = 0;
+         height = 0;
+         mBitmapPaint = new Paint();//Paint.DITHER_FLAG
+         mDrawable = new GoldenShapeDrawable(new PolyShape(1, 0, 0, 0, 0, 0, 0));
+         mDrawable.getPaint().setColor(drawColor);
+         mDrawable.setBounds(0, 0, 0, 0);
+         motionevents = new Vector<>();
+         shapeHistory = new Vector<>();
+         thresholdDistance = 32;
+         drawMatrix = new Matrix();
+         initialthresholdDistance = 3;
+         currentRect = new RectF(0,0,0,0);
+     }
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         try {
@@ -123,6 +130,7 @@ public class CustomDrawableView extends View {
             can = new Canvas(bm);
             backGroundColor = bm.getPixel(0, 0);
             drawingBm = bm;
+            currentRect = new RectF(0,0,canvasWidth,canvasHeight);
 
         }
         catch(Exception e) {
@@ -135,9 +143,16 @@ public class CustomDrawableView extends View {
         try {
             super.onDraw(canvas);
             canvas.save();
-            canvas.scale(scaleFactor, scaleFactor, this.focusX, this.focusY);
-            currentRect = canvas.getClipBounds();
+          //  canvas.scale(scaleFactor, scaleFactor, this.focusX, this.focusY);
+
+            //canvas.drawBitmap(bm, 0, 0, mBitmapPaint);
+            //canvas.drawBitmap(bm, drawMatrix, mBitmapPaint);
+            float[] mvals = new float[9];
+            drawMatrix.getValues(mvals);
+            canvas.translate(mvals[Matrix.MTRANS_X], mvals[Matrix.MTRANS_Y]);
+            canvas.scale(mvals[Matrix.MSCALE_X], mvals[Matrix.MSCALE_Y]);
             canvas.drawBitmap(bm, 0, 0, mBitmapPaint);
+
             mDrawable.draw(canvas);
             canvas.restore();
 
@@ -214,6 +229,9 @@ public class CustomDrawableView extends View {
            if(!undoing){
                shapes.clear();
                shapeHistory.clear();
+               scaleFactor = 1f;
+               drawMatrix = new Matrix();
+               currentRect = new RectF(0,0,canvasWidth,canvasHeight);
            }
             startset = false;
             endset = false;
@@ -889,10 +907,22 @@ public class CustomDrawableView extends View {
     }
 
 
-    public float GetRealValue(float eventVal, float focusVal){
+    public Pair<Float,Float> GetRealValues(float eventX, float eventY){
 
-        float realVal = focusVal > eventVal? focusVal + ((eventVal - focusVal) / scaleFactor): focusVal - (( focusVal - eventVal) / scaleFactor);
-        return realVal;
+        float[] mvals = new float[9];
+
+
+        drawMatrix.getValues(mvals);
+        Matrix m = this.getMatrix();
+        Matrix inverse = new Matrix();
+
+        drawMatrix.invert(inverse);
+        float[] point = {eventX,eventY};
+        inverse.mapPoints(point);
+        //float realX = (eventX -mvals[Matrix.MTRANS_X] )/ mvals[Matrix.MSCALE_X];
+        //float realY = (eventY -mvals[Matrix.MTRANS_Y] )/ mvals[Matrix.MSCALE_Y];
+        // float realVal = focusVal > eventVal? focusVal + ((eventVal - focusVal) / scaleFactor): focusVal - (( focusVal - eventVal) / scaleFactor);
+        return new Pair<>(point[0],point[1]);
 
     }
 
@@ -903,12 +933,11 @@ public class CustomDrawableView extends View {
         try {
             if(event!=null) {
 
-
                /* float X = ((event.getX() - this.focusX) * scaleFactor) +  this.focusX;
                 float Y = ((event.getY()- this.focusX) * scaleFactor) +  this.focusX;*/
-
-                float X = GetRealValue(event.getX(),this.focusX);//Vthis.focusX > event.getX()? this.focusX + ((event.getX() - this.focusX) / scaleFactor): this.focusX - (( this.focusX - event.getX()) / scaleFactor);
-                float Y = GetRealValue(event.getY(), this.focusY);//this.focusY > event.getY()? this.focusY + ((event.getY() - this.focusY) / scaleFactor): this.focusY - (( this.focusY - event.getY()) / scaleFactor);
+                Pair<Float,Float> realvals = GetRealValues(event.getX(),event.getY());
+                float X = realvals.first;//GetRealValue(event.getX(),focusX);//Vthis.focusX > event.getX()? this.focusX + ((event.getX() - this.focusX) / scaleFactor): this.focusX - (( this.focusX - event.getX()) / scaleFactor);
+                float Y = realvals.second;//GetRealValue(event.getY(), focusY);//this.focusY > event.getY()? this.focusY + ((event.getY() - this.focusY) / scaleFactor): this.focusY - (( this.focusY - event.getY()) / scaleFactor);
 
                 Pair<Float,Float> p;
                 //if playmotion is false then add this motion event to the motionevents Vector
@@ -1007,8 +1036,8 @@ public class CustomDrawableView extends View {
                         if(zoomMotion) {
 
                             detector.onTouchEvent(event);
-                            focusX = detector.getFocusX();
-                            focusY = detector.getFocusY();
+                           // focusX = detector.getFocusX();
+                           // focusY = detector.getFocusY();
                         }
                         else{
                             mGestureDetector.onTouchEvent(event);
@@ -1031,115 +1060,126 @@ public class CustomDrawableView extends View {
         private  float MIN_ZOOM = 1f;
         private  float MAX_ZOOM = 10f;
 
-
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            lastFocusX = detector.getFocusX();
+            lastFocusY = detector.getFocusY();
+            return true;
+        }
 
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
+            Matrix transformationMatrix = new Matrix();
+            focusX = detector.getFocusX();
+            focusY = detector.getFocusY();
             try {
+               transformationMatrix.postTranslate(-focusX, -focusY);
                 scaleFactor *= detector.getScaleFactor();
-                scaleFactor = Math.max(MIN_ZOOM, Math.min(scaleFactor, MAX_ZOOM));
-
+                float tscale = detector.getScaleFactor();
+                if(scaleFactor < MIN_ZOOM || scaleFactor > MAX_ZOOM){
+                    float prescaleFactor = scaleFactor/tscale;
+                    scaleFactor = Math.max(MIN_ZOOM, Math.min(scaleFactor, MAX_ZOOM));
+                    tscale = scaleFactor/prescaleFactor;
+                }
+                transformationMatrix.postScale(tscale, tscale);
+                transformationMatrix.postTranslate(focusX, focusY);
+                drawMatrix.postConcat(transformationMatrix);
+                if(scaleFactor == MIN_ZOOM){
+                    drawMatrix = new Matrix();
+                }
+                correctMatrix();
             }
-            catch(Exception e){
-                System.out.println(e.getMessage());
-            }
-
-
+           catch(Exception e){
+               System.out.println(e.getMessage());
+           }
             return true;
+        }
+    }
+    //sees if any of the the view would display outside of the canvas with the current transformation matrix and if so corrects the MTRANS_X and MTRANS_Y values as needed so that
+    //the view only displays things with in the canvas area
+    private void correctMatrix(){
+        float[] mvals = new float[9];
+        drawMatrix.getValues(mvals);
+        float distanceX = 0;
+        float distanceY = 0;
+        float tdx = mvals[Matrix.MTRANS_X];
+        float tdy = mvals[Matrix.MTRANS_Y];
+        
+        //x' = (x*scalefactor)+transition
+        //so x = (x'-transition)/scalefactor
+        //if x' <= width then x <= width
+        //if (x'-transition)/scalefactor > width when x' = width
+        //then correct so that distanx will make (width-transition)/scalefactor <= width
+        if (((canvasWidth - tdx) / scaleFactor) > canvasWidth) {
+            distanceX = tdx - (canvasWidth - (canvasWidth * scaleFactor));
+        }
+
+        //x' = (x*scalefactor)+transition
+        //so x = (x'-transition)/scalefactor
+        //if x' == 0 then x >=0
+        //so (0-t)/s >= 0 => t/s <= 0
+        //sense s is alays >=1 then t <=0
+        //t is greater than 0, then set distanceX value such that transitionX value will be 0
+        if ((tdx) > 0) {
+            distanceX = mvals[Matrix.MTRANS_X];
         }
 
 
+        //y' = (y*scalefactor)+transition
+        //so y = (y'-transition)/scalefactor
+        //if y' <= height then y <= height
+        //if (y'-transition)/scalefactor > height when y' = height
+        //then correct so that distany will make (height-transition)/scalefactor <= height
+        if (((canvasHeight - tdy) / scaleFactor) > canvasHeight) {
+            distanceY = tdy - (canvasHeight - (canvasHeight * scaleFactor));
+        }
 
-
-
+        //y' = (y*scalefactor)+transition
+        //so y = (y'-transition)/scalefactor
+        //if y' == 0 then y >=0
+        //so (0-t)/s >= 0 => t/s <= 0
+        //sense s is alays >=1 then t <=0
+        //t is greater than 0, then set distancey value such that transitiony value will be 0
+        if ((tdy) > 0) {
+            distanceY = mvals[Matrix.MTRANS_Y];
+        }
+        drawMatrix.postTranslate(-distanceX, -distanceY);
     }
-
-
 
     private final GestureDetector.SimpleOnGestureListener mGestureListener
             = new GestureDetector.SimpleOnGestureListener() {
-
-
-       /* @Override
-        public boolean onDown(MotionEvent e) {
-            return true;
-        }*/
-
-        public void onShowPress(MotionEvent e){
-
-        }
-        @Override
-        public boolean onSingleTapUp(MotionEvent e){
-            return true;
-        }
-
-        @Override
-        public void onLongPress(MotionEvent e){}
-
-       /* @Override
-       public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY){
-            return onScroll(e1,e2,Math.abs(e1.getX() - e2.getX()),Math.abs(e1.getY() - e2.getY()));
-        }*/
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            if(scaleFactor > 1) {
-                float x1 = GetRealValue(e1.getX(), focusX);
-                float y1 = GetRealValue(e1.getY(), focusY);
+            if (scaleFactor > 1) {
+                try {
 
-                float xx1 = e1.getX();
-                float yy1 = e1.getY();
 
-                float x2 = GetRealValue(e2.getX(), focusX);
-                float y2 = GetRealValue(e2.getY(), focusY);
-
-                float xx2 = e2.getX();
-                float yy2 = e2.getY();
-
-                float dx = x1 > x2 ? x1 - x2 : x2 - x1;
-                float dy = y1 > y2 ? y1 - y2 : y2 - y1;
-
-                Rect r = new Rect(currentRect);
-                float rwidth = r.right - r.left;
-                float rheight = r.bottom - r.top;
-
-                if (dx > dy) {
-                    if (x2 > x1) {
-                        if ((r.left - dx) < 0) {
-                            dx = r.left;
-                        }
-
-                        r.left -= dx;
-                        r.right -= dx;
-
-                    } else {
-                        if ((r.right + dx) > canvasWidth) {
-                            dx = canvasWidth - r.right;
-                        }
-
-                        r.left += dx;
-                        r.right += dx;
+                   /* float[] mvals = new float[9];
+                    drawMatrix.getValues(mvals);
+                    float tdx = mvals[Matrix.MTRANS_X] - distanceX;
+                    float tdy = mvals[Matrix.MTRANS_Y] - distanceY;
+                    if (((canvasWidth - tdx) / scaleFactor) > canvasWidth) {
+                        distanceX = mvals[Matrix.MTRANS_X] - (canvasWidth - (canvasWidth * scaleFactor));
                     }
-                } else {
-
-                    if (y2 > y1) {
-                        if ((r.top - dy) < 0) {
-                            dy = r.top;
-                        }
-                        r.top -= dy;
-                        r.bottom -= dy;
-                    } else {
-                        if ((r.bottom + dy) > canvasHeight) {
-                            dy = canvasHeight - r.bottom;
-                        }
-
-                        r.top += dy;
-                        r.bottom += dy;
+                    if ((tdx) > 0) {
+                        distanceX = mvals[Matrix.MTRANS_X];
                     }
+                    if (((canvasHeight - tdy) / scaleFactor) > canvasHeight) {
+                        distanceY = mvals[Matrix.MTRANS_Y] - (canvasHeight - (canvasHeight * scaleFactor));
+                    }
+                    if ((tdy) > 0) {
+                        distanceY = mvals[Matrix.MTRANS_Y];
+                    }
+                 */
+
+                    drawMatrix.postTranslate(-distanceX, -distanceY);
+
+                    correctMatrix();
                 }
-                focusX = (-1 * scaleFactor * r.left) / (1 - scaleFactor);
-                focusY = (-1 * scaleFactor * r.top) / (1 - scaleFactor);
+                catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
             }
-
             return true;
         }
 
