@@ -277,7 +277,9 @@ public class CircleFormula implements ShapeFormula {
                 double areaOverLap = Math.abs(Maths.FindAreaOverlappingCircles(this, sh.GetCircumCircle()));
                 if (areaOverLap > 0) {
                     double frequency = area / areaOverLap;
-                    play(frequency);
+                    if(frequency <= DiatonicScale.MAXFREQENCY) {
+                        play(frequency);
+                    }
                 }
                 double pDiamater = sh.getDiamater();
                 double frequency = pDiamater > diamater ? pDiamater / diamater : diamater / pDiamater;
@@ -588,14 +590,13 @@ public class CircleFormula implements ShapeFormula {
         try {
             float dis = (float) Maths.CircleDistance(this,sf.GetCircumCircle());
 
-            if ( dis <=0.000001)
+            if ( !inBounds(sf) &&  dis <=0.000001)
             {
                 int addindexval = 0;
                 while (addindexval < connectedShapes.size() && connectedShapes.get(addindexval).getDiamater() > sf.getDiamater()) {
                     ++addindexval;
                 }
                 connectedShapes.add(addindexval, sf);
-                //connectedShapes.add(sf);
                 for (ShapeFormula sfi : inside) {
                     sfi.AddConnectedShape(sf);
                 }

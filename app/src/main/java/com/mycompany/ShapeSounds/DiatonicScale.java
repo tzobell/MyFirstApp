@@ -9,6 +9,7 @@ import java.util.HashMap;
  */
 public class DiatonicScale {
     public static final int MAXNOTENUM= 88;//max note number
+    public static  final double MAXFREQENCY = 1 * Math.pow(2,Octave.toInt(Octave.MAXOCTAVE));
     public static final int NOTESPEROCTAVE = 12;//number of notes in a octave
     public static final int NOTECOUNTOFFSET = 9;//offset for counting notes.
     public static final HashMap<Notes,Double> noteFrequencies; //contains pairs of Notes and the frequency of that note at octave 0

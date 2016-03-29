@@ -1104,7 +1104,7 @@ public class CustomDrawableView extends View {
         float distanceY = 0;
         float tdx = mvals[Matrix.MTRANS_X];
         float tdy = mvals[Matrix.MTRANS_Y];
-        
+
         //x' = (x*scalefactor)+transition
         //so x = (x'-transition)/scalefactor
         //if x' <= width then x <= width
@@ -1152,28 +1152,7 @@ public class CustomDrawableView extends View {
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             if (scaleFactor > 1) {
                 try {
-
-
-                   /* float[] mvals = new float[9];
-                    drawMatrix.getValues(mvals);
-                    float tdx = mvals[Matrix.MTRANS_X] - distanceX;
-                    float tdy = mvals[Matrix.MTRANS_Y] - distanceY;
-                    if (((canvasWidth - tdx) / scaleFactor) > canvasWidth) {
-                        distanceX = mvals[Matrix.MTRANS_X] - (canvasWidth - (canvasWidth * scaleFactor));
-                    }
-                    if ((tdx) > 0) {
-                        distanceX = mvals[Matrix.MTRANS_X];
-                    }
-                    if (((canvasHeight - tdy) / scaleFactor) > canvasHeight) {
-                        distanceY = mvals[Matrix.MTRANS_Y] - (canvasHeight - (canvasHeight * scaleFactor));
-                    }
-                    if ((tdy) > 0) {
-                        distanceY = mvals[Matrix.MTRANS_Y];
-                    }
-                 */
-
                     drawMatrix.postTranslate(-distanceX, -distanceY);
-
                     correctMatrix();
                 }
                 catch (Exception e) {

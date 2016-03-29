@@ -34,7 +34,7 @@ public class MyActivity extends ActionBarActivity {
     CustomDrawableView mCustomDrawableView;
     private ImageButton drawButton;
     private ImageButton playButton;
-    private ImageButton stopButton;
+    //private ImageButton stopButton;
     private ImageButton navButton;
     private ImageButton clearButton;
     private ImageButton undoButton;
@@ -76,14 +76,14 @@ try {
 
     drawButton = (ImageButton) findViewById(R.id.drawButton);
     playButton = (ImageButton) findViewById(R.id.playButton);
-    stopButton = (ImageButton) findViewById(R.id.stopButton);
+    //stopButton = (ImageButton) findViewById(R.id.stopButton);
     navButton = (ImageButton) findViewById(R.id.navButton);
     clearButton = (ImageButton) findViewById(R.id.clearButton);
     undoButton = (ImageButton) findViewById(R.id.undoButton);
 
 
     playButton.setBackgroundResource(R.drawable.button_custom);
-    stopButton.setBackgroundResource(R.drawable.button_custom);
+   // stopButton.setBackgroundResource(R.drawable.button_custom);
     navButton.setBackgroundResource(R.drawable.button_custom);
     clearButton.setBackgroundResource(R.drawable.button_custom);
     undoButton.setBackgroundResource(R.drawable.button_custom);
@@ -107,7 +107,7 @@ try {
     });
 
 
-    stopButton.setOnClickListener(new View.OnClickListener() {
+    /*stopButton.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if(playButton.isSelected() && player!=null){
@@ -115,42 +115,49 @@ try {
                 player = null;
             }
         }
-    });
+    });*/
 
     playButton.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
 
-            mCustomDrawableView.QueUpForPlay();
-            player = Sound.playAll(Arrays.asList(new ImageButton[]{selectedButton, drawButton, playButton, clearButton, undoButton}), new Ifunction() {
-                ImageButton selectBtn = selectedButton;
-                ImageButton playBtn = playButton;
-                CustomDrawableView cdv = mCustomDrawableView;
+            if (!playButton.isSelected()) {
+                mCustomDrawableView.QueUpForPlay();
+                player = Sound.playAll(Arrays.asList(new ImageButton[]{selectedButton, drawButton, playButton, clearButton, undoButton}), new Ifunction() {
+                    ImageButton selectBtn = selectedButton;
+                    ImageButton playBtn = playButton;
+                    CustomDrawableView cdv = mCustomDrawableView;
 
-                @Override
-                public void execute(Object o) {
-                    ImageButton btn = (ImageButton) o;
-                    if(btn == playBtn){
-                        playBtn.setSelected(false);
-                        cdv.CanDraw(true);
-                    }
-                    else {
-                        btn.setEnabled(true);
-                        if (btn == selectBtn) {
-                            selectBtn.setSelected(true);
+                    @Override
+                    public void execute(Object o) {
+                        ImageButton btn = (ImageButton) o;
+                        if (btn == playBtn) {
+                            playBtn.setSelected(false);
+                            cdv.CanDraw(true);
+                        } else {
+                            btn.setEnabled(true);
+                            if (btn == selectBtn) {
+                                selectBtn.setSelected(true);
+                            }
                         }
-                    }
 
+                    }
+                });
+                if (player != null) {
+                    playButton.setSelected(true);
+                    selectedButton.setSelected(false);
+                    drawButton.setEnabled(false);
+                    clearButton.setEnabled(false);
+                    undoButton.setEnabled(false);
+                    mCustomDrawableView.CanDraw(false);
+                    player.start();
                 }
-            });
-            if(player!=null) {
-                playButton.setSelected(true);
-                selectedButton.setSelected(false);
-                drawButton.setEnabled(false);
-                clearButton.setEnabled(false);
-                undoButton.setEnabled(false);
-                mCustomDrawableView.CanDraw(false);
-                player.start();
+            }
+            else{
+                if(player!=null){
+                    player.stop();
+                    player = null;
+                }
             }
         }
     });

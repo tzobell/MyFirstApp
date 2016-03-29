@@ -151,36 +151,22 @@ public class Sound {
         try {
             if (sound != null && sound.noteQ.size() > 0) {
                 sound.EqualizeNoteQueue();
-                int ms = (sound.noteQ.size() + 1) * 750;//number of milliseconds to play all the notes in NoteQ
-                cd = new CustomCountDownTimer(ms, 750) {
+                final int play = 500;//ammount of time to play note
+                final int fade = 150;//ammount of time to fade out when done playing
+                int ms = (sound.noteQ.size() + 1) * (play);//number of milliseconds to play all the notes in NoteQ
+                cd = new CustomCountDownTimer(ms, (play)) {
                     Ifunction f = finishFunc;
                     Collection c = collection;
+                    MyMediaPlayer mediaNote = null;
                     Pair<Notes,Octave> note = null;
                     @Override
                     public void onTick(long millisUntilFinished) {
                         try {
                             //if note is not null then stop the sound file from playing by pausing the sound, and then "rewind" the sound file by calling SeekTo(0) and renewing the note
-                            if (note != null) {
-                                int noteval = DiatonicScale.NoteNum(note);
-                                try {
-                                    sound.mp.get(noteval).pause();
-                                    sound.mp.get(noteval).seekTo(0);
-                                    sound.renewNote(note);
-                                }
-                                catch (Exception e) {
-                                    System.out.println(e.getMessage());
-                                }
-                            }
                             note = sound.noteQ.poll(); //get the next note in the queue
-                            //if note is not null then start the soundfile for that note
                             if (note != null) {
                                 int noteval = DiatonicScale.NoteNum(note);
-                                try {
-                                sound.mp.get(noteval).start();
-                                }
-                                catch (Exception e) {
-                                    System.out.println(e.getMessage());
-                                }
+                                mediaNote = new MyMediaPlayer(sound.context, sound.audiofiles.get(noteval), play, fade, true);
                             }
                         } catch (Exception e) {
                             System.out.println(e.getMessage());
@@ -190,18 +176,10 @@ public class Sound {
                     @Override
                     public void onFinish() {
                         try {
-                            //pause the current note from playing
-                            if(note!=null) {
-                                sound.mp.get(DiatonicScale.NoteNum(note)).pause();
-                            }
-                            //restart notes and clear noteQ
-                            sound.releaseNotes();
-                            sound.initNotes();
                             sound.noteQ.clear();
                             sound.highestOctave = null;
                             sound.lowestOctave = null;
                             execute();
-
                         }
                         catch (Exception e) {
                             System.out.println(e.getMessage());
@@ -222,8 +200,6 @@ public class Sound {
 
                     }
                 };
-                //cd.start();
-
             }
         }
        catch (Exception e) {

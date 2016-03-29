@@ -21,12 +21,20 @@
                     android:layout_height="?attr/actionBarSize"
                     android:scaleType="fitCenter"/>
                 <ImageButton
-                    android:id = "@+id/playButton"
+                    android:id="@+id/navButton"
                     android:focusable="true"
-                    android:src="@drawable/play"
+                    android:src="@drawable/compass"
                     android:layout_width="?attr/actionBarSize"
                     android:layout_height="?attr/actionBarSize"
                     android:scaleType="fitCenter"/>
+                <ImageButton
+                    android:id = "@+id/playButton"
+                    android:focusable="true"
+                    android:src="@drawable/stop_play"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:scaleType="fitCenter"/>
+               <!--
                 <ImageButton
                     android:id = "@+id/stopButton"
                     android:focusable="true"
@@ -34,13 +42,8 @@
                     android:layout_width="?attr/actionBarSize"
                     android:layout_height="?attr/actionBarSize"
                     android:scaleType="fitCenter"/>
-                <ImageButton
-                    android:id="@+id/navButton"
-                    android:focusable="true"
-                    android:src="@drawable/compass"
-                    android:layout_width="?attr/actionBarSize"
-                    android:layout_height="?attr/actionBarSize"
-                    android:scaleType="fitCenter"/>
+                    -->
+
                 <ImageButton
                     android:id="@+id/undoButton"
                     android:focusable="true"
