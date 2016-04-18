@@ -492,12 +492,18 @@ public class CircleFormula implements ShapeFormula {
 
     //if ShapeFormula shape is in the Vector<> inside or connectedShapes, then remove it from that vector
     public void RemoveShape(ShapeFormula shape){
-      if(inBounds(shape)){
-          RemoveShapeInside(shape);
-      }
-        else{
-          RemoveShapeConnecting(shape);
-      }
+        try {
+            if (inBounds(shape)) {
+                RemoveShapeInside(shape);
+            } else {
+                RemoveShapeConnecting(shape);
+            }
+        }
+        catch (Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
+
     }
     //if ShapeFormula shape is in the Vector<> inside then remove it from that vector
     private void RemoveShapeInside(ShapeFormula shape){

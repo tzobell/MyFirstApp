@@ -208,12 +208,17 @@ public class CustomDrawableView extends View {
         catch(Exception e){
             System.out.println(e.getMessage());
         }
-        startset = false;
-        endset = false;
-        startShape = null;
-        zoom = false;
-        previousBm = bm.copy(Bitmap.Config.ARGB_8888,true);
-        undoing = false;
+        try {
+            startset = false;
+            endset = false;
+            startShape = null;
+            zoom = false;
+           // previousBm = bm.copy(Bitmap.Config.ARGB_8888, true);
+            undoing = false;
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
 
 
     }
@@ -998,7 +1003,7 @@ public class CustomDrawableView extends View {
                                 setEnd(p.first, p.second);
                                 if (!zoom) {
                                     if (endShape != null) {
-                                        UnDrawGoldenPoints();
+                                      //  UnDrawGoldenPoints();
                                     }
                                     draw();
                                     mDrawable.gs.DrawCircumCircle(true);

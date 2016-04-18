@@ -1,9 +1,21 @@
 <resources>
     <color name="white_opaque">#FFFFFFFF</color>
     <color name="dividercolor">#00000000 </color>
+    <color name ="selectcolor">#FF000000</color>
+    <color name="actionbarcolor">#FFA1A1A1</color>
+    <integer-array name="shape_array">
+        <item>@drawable/line_custom</item>
+        <item>@drawable/triangle_custom</item>
+        <item>@drawable/square_custom</item>
+        <item>@drawable/pentagon_custom</item>
+        <item>@drawable/hexagon_custom</item>
+        <item>@drawable/circle_custom</item>
+    </integer-array>
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowNoTitle">true</item>
+
+
 
 
 

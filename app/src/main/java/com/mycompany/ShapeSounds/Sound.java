@@ -153,7 +153,7 @@ public class Sound {
                 sound.EqualizeNoteQueue();
                 final int play = 500;//ammount of time to play note
                 final int fade = 150;//ammount of time to fade out when done playing
-                int ms = (sound.noteQ.size() + 1) * (play);//number of milliseconds to play all the notes in NoteQ
+                int ms = (sound.noteQ.size() + 1) * (play+fade);//number of milliseconds to play all the notes in NoteQ
                 cd = new CustomCountDownTimer(ms, (play)) {
                     Ifunction f = finishFunc;
                     Collection c = collection;

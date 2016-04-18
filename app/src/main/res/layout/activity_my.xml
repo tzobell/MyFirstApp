@@ -9,21 +9,34 @@
                 android:id="@+id/my_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
+                android:background="@color/actionbarcolor"
                 android:elevation="4dp"
                 android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
                 popupTheme="@style/ThemeOverlay.AppCompat.Light">
-                <ImageButton
+
+                <com.mycompany.ShapeSounds.MySpinner
+                    android:id="@+id/draw_spinner"
+                    android:focusable="true"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:scaleType="fitCenter"
+                    android:dropDownVerticalOffset="?attr/actionBarSize"
+
+                    android:padding="5dp" />
+
+
+                <!--<ImageButton
                     android:id="@+id/drawButton"
                     android:focusable="true"
-                    android:src="@drawable/triangle"
+                    android:src="@drawable/triangle_custom"
                     android:layout_width="?attr/actionBarSize"
                     android:layout_height="?attr/actionBarSize"
                     android:scaleType="fitCenter"/>
+                    -->
                 <ImageButton
                     android:id="@+id/navButton"
                     android:focusable="true"
-                    android:src="@drawable/compass"
+                    android:src="@drawable/nav_custom"
                     android:layout_width="?attr/actionBarSize"
                     android:layout_height="?attr/actionBarSize"
                     android:scaleType="fitCenter"/>
@@ -64,5 +77,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/my_toolbar" />
+        android:layout_below="@+id/my_toolbar"
+        android:background="#ffffffff" />
 </RelativeLayout>
