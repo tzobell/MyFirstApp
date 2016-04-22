@@ -596,7 +596,7 @@ public class CircleFormula implements ShapeFormula {
         try {
             float dis = (float) Maths.CircleDistance(this,sf.GetCircumCircle());
 
-            if ( !inBounds(sf) &&  dis <=0.000001)
+            if ( !inBounds(sf) &&  dis <=0.001)
             {
                 int addindexval = 0;
                 while (addindexval < connectedShapes.size() && connectedShapes.get(addindexval).getDiamater() > sf.getDiamater()) {

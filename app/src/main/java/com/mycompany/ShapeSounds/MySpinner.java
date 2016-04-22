@@ -74,7 +74,10 @@ public class MySpinner extends Spinner {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
         if(first){
-            getSelectedView().setSelected(true);
+            View view = getSelectedView();
+            if(view!=null) {
+                view.setSelected(true);
+            }
 
         }
     }

@@ -3,6 +3,7 @@ package com.mycompany.ShapeSounds;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.ActionBarActivity;
@@ -71,6 +72,12 @@ try {
     setSupportActionBar(myToolbar);
     getSupportActionBar().setDisplayShowTitleEnabled(false);
     drawButton = (MySpinner) findViewById(R.id.draw_spinner);
+    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+       Toolbar toolbar = (Toolbar)findViewById(R.id.my_toolbar);
+        int offset = toolbar.getMinimumHeight();//getHeight();
+        drawButton.setDropDownVerticalOffset(offset);
+    }
+
     drawButton.setAdapter(new MyAdapter(MyActivity.this, R.layout.draw_spinner_row, shapeNames));
     drawButton.setOnItemSelectedListener(MyActivity.this);
     drawButton.setOnTouchListener(new View.OnTouchListener() {
@@ -83,6 +90,7 @@ try {
         }
     });
 
+    int ddoffset = drawButton.getDropDownWidth();
     playButton = (ImageButton) findViewById(R.id.playButton);
     navButton = (ImageButton) findViewById(R.id.navButton);
     clearButton = (ImageButton) findViewById(R.id.clearButton);
@@ -229,22 +237,10 @@ catch(Exception e){
         }
         lastSelectedShape = view;
         raiseLowerButtons(view);
-        if(first){
-          //  boolean s = view.isSelected();
-          //  view.invalidate();
-           // drawButton.invalidate();
-            first = false;
-          //  view.requestFocus();
-//            drawButton.requestChildFocus(view,drawButton.getFocusedChild());
-        }
-
-
-
 
     }
     public void onNothingSelected(AdapterView<?> parent) {
-        int abc = 123;
-        abc+=4;
+
     }
 
 
@@ -282,19 +278,7 @@ catch(Exception e){
     }
 
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle presses on the action bar items
-        boolean result = false;
-       try {
 
-       }
-       catch(Exception e){
-           System.out.println(e.getMessage());
-
-       }
-        return result;
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
