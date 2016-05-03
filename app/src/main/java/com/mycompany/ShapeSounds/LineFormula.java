@@ -425,7 +425,7 @@ public class LineFormula implements Formula {
     }
 
     private Pair<Float,Float> FoY(Pair<Float,Float> p){
-       return getpoint(p,false);
+       return getpoint(p, false);
     }
 
     //return y = f(x)
@@ -522,6 +522,10 @@ public class LineFormula implements Formula {
     }
     public Pair<Float,Float>[] GetKeyPoints(){
         return keyPoints;
+    }
+
+    public ShapeType getShapeType() {
+        return ShapeType.line;
     }
 }
 

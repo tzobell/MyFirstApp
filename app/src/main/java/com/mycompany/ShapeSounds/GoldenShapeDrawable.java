@@ -19,9 +19,7 @@ public class GoldenShapeDrawable extends ShapeDrawable {
         gs = shape;
     }
 
-    public Formula[] GetGoldenPoints() {
-        return gs.GetGoldenPoints();
-    }
+
 
     public GoldenShape GetGoldenShape() {
         return gs;
@@ -85,7 +83,7 @@ public class GoldenShapeDrawable extends ShapeDrawable {
         final Paint paint = getPaint();
 
         final int prevAlpha = paint.getAlpha();
-        paint.setAlpha(modulateAlpha(prevAlpha, getAlpha()));
+        paint.setAlpha(modulateAlpha(prevAlpha, 255));
 
 
         // only draw shape if it may affect output

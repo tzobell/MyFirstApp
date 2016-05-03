@@ -434,8 +434,12 @@ public class CircleFormula implements ShapeFormula {
         try {
 
             boolean in = inBounds(shape.GetCircumCircle());
+            if(inside.contains(shape)){
+                in = false;
+                bs = new Pair<>(true,(ShapeFormula)this);
+            }
             //if shape's circumcircle is inBounds of this shape
-            if (in) {
+            if (in  ) {
                 if(inside.size() > 0) {
                     boolean inshape = false;
                     //try adding shape to one of the ShapeFormula's in the Vector<> inside.
@@ -596,12 +600,13 @@ public class CircleFormula implements ShapeFormula {
         try {
             float dis = (float) Maths.CircleDistance(this,sf.GetCircumCircle());
 
-            if ( !inBounds(sf) &&  dis <=0.001)
+            if ( !inBounds(sf) &&  dis <=0.001 &&  !connectedShapes.contains(sf))
             {
                 int addindexval = 0;
                 while (addindexval < connectedShapes.size() && connectedShapes.get(addindexval).getDiamater() > sf.getDiamater()) {
                     ++addindexval;
                 }
+
                 connectedShapes.add(addindexval, sf);
                 for (ShapeFormula sfi : inside) {
                     sfi.AddConnectedShape(sf);
@@ -634,4 +639,10 @@ public class CircleFormula implements ShapeFormula {
         }
         return equal;
     }
+
+    public ShapeType getShapeType() {
+        return ShapeType.circle;
+    }
+
+
 }

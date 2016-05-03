@@ -42,6 +42,11 @@ public class MySpinner extends Spinner {
 
 
     @Override
+    public void setSelected(boolean selected){
+        super.setSelected(selected);
+    }
+
+    @Override
     public void setSelection(int position)
     {
         int pos = getSelectedItemPosition();
@@ -72,13 +77,13 @@ public class MySpinner extends Spinner {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        View view = getSelectedView();
+        boolean selected = view!=null?view.isSelected():false;
         super.onLayout(changed, l, t, r, b);
-        if(first){
-            View view = getSelectedView();
-            if(view!=null) {
-                view.setSelected(true);
+
+            if(view!=null){
+                view.setSelected(selected);
             }
 
-        }
     }
 }

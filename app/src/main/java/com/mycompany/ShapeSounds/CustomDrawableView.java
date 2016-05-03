@@ -23,6 +23,8 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 
 
+import java.util.Queue;
+import java.util.Stack;
 import java.util.Vector;
 
 
@@ -42,7 +44,8 @@ public class CustomDrawableView extends View {
     ShapeFormula endShape = null;
     ShapeFormula previousEndShape = null;
     private Vector<ShapeFormula> shapes;
-    private Vector<ShapeSummary>shapeHistory;
+    private FixedStackSize<DrawActions> shapeHistory;
+    private FixedStackSize<DrawActions> shapeFuture;
     private Vector<MotionEvent> motionevents;
     Pair<Float,ShapeFormula> intersect =null;
     Vector<ShapeFormula> intersectShapes;
@@ -65,7 +68,7 @@ public class CustomDrawableView extends View {
     float canvasWidth = 0;
     float canvasHeight = 0;
     boolean lastMotion = false;
-    boolean undoing = false;
+    boolean movingThroughTime = false;
     private int playMotionEventsOffset = 0;
     ShapeType shape;
     boolean startset = false;
@@ -95,31 +98,59 @@ public class CustomDrawableView extends View {
         init();
     }
 
-     private void init() {
-         shapes = new Vector<>();
-         intersectShapes = new Vector<>();
-         intersectThisShape = new Vector<>();
-         intersectPrevShapes = new Vector<>();
-         detector = new ScaleGestureDetector(getContext(), new ScaleListener());
-         mGestureDetector = new GestureDetectorCompat(getContext(), mGestureListener);
-         shape = ShapeType.triangle;
-         endy = 0;
-         endx = 0;
-         startx = 0;
-         starty = 0;
-         width = 0;
-         height = 0;
-         mBitmapPaint = new Paint();//Paint.DITHER_FLAG
-         mDrawable = new GoldenShapeDrawable(new PolyShape(1, 0, 0, 0, 0, 0, 0));
-         mDrawable.getPaint().setColor(drawColor);
-         mDrawable.setBounds(0, 0, 0, 0);
-         motionevents = new Vector<>();
-         shapeHistory = new Vector<>();
-         thresholdDistance = 32;
-         drawMatrix = new Matrix();
-         initialthresholdDistance = 3;
-         currentRect = new RectF(0,0,0,0);
-     }
+    //set listener for shapeHistory stack for when stack becomes empty
+    public void setHistoryOnEmptyListener(OnEmptyListener onemptylistener){
+
+        shapeHistory.setOnEmptyListener(onemptylistener);
+
+    }
+    //set listener for shapeHistory stack for when stack goes from 0 elements to 1 or more element
+    public void setHistoryOnFirstElementAddedListener(OnFirstElementAdded firstadded){
+
+        shapeHistory.setOnFirstElementAddedListener(firstadded);
+    }
+
+
+
+    //set listener for shapeFuture stack for when stack becomes empty
+    public void setFutureOnEmptyListener(OnEmptyListener onemptylistener){
+
+        shapeFuture.setOnEmptyListener(onemptylistener);
+
+    }
+    //set listener for shapeFuture stack for when stack goes from 0 elements to 1 or more element
+    public void setFutureOnFirstElementAddedListener(OnFirstElementAdded firstadded){
+
+        shapeFuture.setOnFirstElementAddedListener(firstadded);
+    }
+
+    private void init() {
+        shapes = new Vector<>();
+        intersectShapes = new Vector<>();
+        intersectThisShape = new Vector<>();
+        intersectPrevShapes = new Vector<>();
+        detector = new ScaleGestureDetector(getContext(), new ScaleListener());
+        mGestureDetector = new GestureDetectorCompat(getContext(), mGestureListener);
+        shape = ShapeType.triangle;
+        endy = 0;
+        endx = 0;
+        startx = 0;
+        starty = 0;
+        width = 0;
+        height = 0;
+        mBitmapPaint = new Paint();//Paint.DITHER_FLAG
+        mDrawable = new GoldenShapeDrawable(new PolyShape(1, 0, 0, 0, 0, 0, 0));
+        mDrawable.getPaint().setColor(drawColor);
+        mDrawable.setBounds(0, 0, 0, 0);
+        motionevents = new Vector<>();
+        shapeHistory = new FixedStackSize<>(10);
+        shapeFuture = new FixedStackSize<>(10);
+        thresholdDistance = 32;
+        drawMatrix = new Matrix();
+        initialthresholdDistance = 3;
+        currentRect = new RectF(0, 0, 0, 0);
+
+    }
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         try {
@@ -167,42 +198,24 @@ public class CustomDrawableView extends View {
     public void Undo() {
         try {
             ShapeType curShape = shape;
-            if (shapeHistory.size() > 0) {
-                undoing = true;
+            if (!shapeHistory.isEmpty()) {
+                movingThroughTime = true;
                 Clear();
-
-                ShapeSummary ls = shapeHistory.get(shapeHistory.size() - 1);
-                Formula f = ls.sf;
-                if (f instanceof ShapeFormula) {                    
-                    Vector<ShapeFormula> associated = ls.GetAssociatedShapes();
-                    for (ShapeFormula shapeformula : associated) {
-                        shapeformula.RemoveShape((ShapeFormula) ls.sf);
-                    }
-                    int size = shapes.size();
-                    for (int i = 0; i < size; ++i) {
-                        if (shapes.get(i) == ls.sf) {
-                            shapes.remove(i);
-                            i = size;
-                        }
-                    }
-                    //for (ShapeFormula s : sf.GetInsideShapes()) {
-                     //   AddShape(s);
-                   // }
+                DrawActions da = shapeHistory.pop();
+                shapeFuture.push(da);
+                da.undo(shapes);
+                for (int i = 0; i < shapes.size(); ++i) {
+                    ShapeFormula ss = shapes.get(i);
+                    shape = ss.getShapeType();
+                    setStart(ss.GetStart());
+                    setEnd(ss.GetEnd());
+                    draw();
+                    mDrawable.gs.DrawCircumCircle(true);
+                    invalidate();
+                    newCanvas(false);
                 }
+                shape = curShape;
             }
-            shapeHistory.remove(shapeHistory.size() - 1);
-            for (int i = 0; i < shapeHistory.size(); ++i) {
-                ShapeSummary ss = shapeHistory.get(i);
-                shape = ss.shape;
-                setStart(ss.startx, ss.starty);
-                setEnd(ss.endx, ss.endy);
-                //mDrawable.draw(can);
-                draw();
-                mDrawable.gs.DrawCircumCircle(true);
-                invalidate();
-                newCanvas(false);
-            }
-            shape = curShape;
         }
 
         catch(Exception e){
@@ -212,9 +225,9 @@ public class CustomDrawableView extends View {
             startset = false;
             endset = false;
             startShape = null;
-            zoom = false;
+           // zoom = false;
            // previousBm = bm.copy(Bitmap.Config.ARGB_8888, true);
-            undoing = false;
+            movingThroughTime = false;
         }
         catch(Exception e){
             System.out.println(e.getMessage());
@@ -222,6 +235,47 @@ public class CustomDrawableView extends View {
 
 
     }
+
+
+    public void Redo(){
+        try {
+            ShapeType curShape = shape;
+            if (!shapeFuture.isEmpty()) {
+                movingThroughTime = true;
+                Clear();
+                DrawActions da = shapeFuture.pop();
+                shapeHistory.push(da);
+                da.execute(shapes);
+                for (int i = 0; i < shapes.size(); ++i) {
+                    ShapeFormula ss = shapes.get(i);
+                    shape = ss.getShapeType();
+                    setStart(ss.GetStart());
+                    setEnd(ss.GetEnd());
+                    draw();
+                    mDrawable.gs.DrawCircumCircle(true);
+                    invalidate();
+                    newCanvas(false);
+                }
+                shape = curShape;
+            }
+        }
+
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+        try {
+            startset = false;
+            endset = false;
+            startShape = null;
+            // zoom = false;
+            // previousBm = bm.copy(Bitmap.Config.ARGB_8888, true);
+            movingThroughTime = false;
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
+
     //reset the canvas and other variables and objects to start over
     public void Clear(){
         try {
@@ -231,9 +285,10 @@ public class CustomDrawableView extends View {
             bm = Bitmap.createBitmap(bm.getWidth(), bm.getHeight(), Bitmap.Config.ARGB_8888);
             can = new Canvas(bm);
 
-           if(!undoing){
+           if(!movingThroughTime && shapes.size() > 0){
                shapes.clear();
-               shapeHistory.clear();
+               DrawActionsClear dac = new DrawActionsClear(shapeHistory);
+               shapeHistory.push(dac);
                scaleFactor = 1f;
                drawMatrix = new Matrix();
                currentRect = new RectF(0,0,canvasWidth,canvasHeight);
@@ -293,13 +348,13 @@ public class CustomDrawableView extends View {
             if(!added){
                 shapes.add(sf);
             }
-            if(!undoing){
-                shapeHistory.add(new ShapeFormulaSummary(startx,starty,endx,endy,shape,sf,insideShape,startShape));
+            if(!movingThroughTime){
+                shapeHistory.push(new DrawShapeAction(new ShapeFormulaSummary(startx,starty,endx,endy,shape,sf,insideShape,startShape)));
             }
         }
         else {
-            if (!undoing) {
-                shapeHistory.add(new ShapeSummary(startx, starty, endx, endy, shape, f, null, startShape));
+            if (!movingThroughTime) {
+                shapeHistory.push(new DrawShapeAction(new ShapeSummary(startx, starty, endx, endy, shape, f, null, startShape)));
             }
         }
         }
@@ -315,7 +370,7 @@ public class CustomDrawableView extends View {
     void newCanvas(boolean addShape){
         try {
             Formula f = mDrawable.GetGoldenShape().GetFormula();
-            if(!undoing && addShape) {
+            if(!movingThroughTime && addShape) {
                 AddShape(f);
             }
             ShapeType st = shape;
@@ -981,9 +1036,9 @@ public class CustomDrawableView extends View {
                                     DrawGoldenPoints(endShape);
                                 }
                             }*/
-                                    if (!zoom) {
+
                                         draw();
-                                    }
+
                                     //if the shape's circumcircle just barley intersects another shapes circumcircle, then draw the circumcircle for the shape currently being drawn.
                                     if (intersect != null) {
                                         mDrawable.gs.DrawCircumCircle(true);
@@ -1001,7 +1056,7 @@ public class CustomDrawableView extends View {
                             case MotionEvent.ACTION_UP:
                                 p = DeterminePoint(X, Y);
                                 setEnd(p.first, p.second);
-                                if (!zoom) {
+
                                     if (endShape != null) {
                                       //  UnDrawGoldenPoints();
                                     }
@@ -1010,13 +1065,14 @@ public class CustomDrawableView extends View {
                                     //mDrawable.gs.DrawGoldenPoints(true);
                                     invalidate();
                                     newCanvas();
-                                }
+
                                 startset = false;
                                 endset = false;
                                 startShape = null;
                                 invalidate();
-                                zoom = false;
-                                previousBm = bm.copy(Bitmap.Config.ARGB_8888, true);
+
+                              //  previousBm  = bm.copy(Bitmap.Config.ARGB_8888, true);
+                                shapeFuture.clear();
 
 
                                 break;
@@ -1168,6 +1224,8 @@ public class CustomDrawableView extends View {
         }
 
     };
+
+
 
 
 }

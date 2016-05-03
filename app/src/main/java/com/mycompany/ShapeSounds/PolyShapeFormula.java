@@ -871,4 +871,8 @@ public class PolyShapeFormula implements ShapeFormula {
     public Vector<ShapeFormula> GetConnectedShapes(){
         return circumcircle.GetConnectedShapes();
     }
+
+    public ShapeType getShapeType() {
+        return ShapeType.GetShapeType(shapepoints);
+    }
 }

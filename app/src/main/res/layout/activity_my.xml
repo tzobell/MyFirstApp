@@ -13,67 +13,70 @@
                 android:elevation="4dp"
                 android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
                 popupTheme="@style/ThemeOverlay.AppCompat.Light">
+                <LinearLayout
 
-                <com.mycompany.ShapeSounds.MySpinner
-                    android:id="@+id/draw_spinner"
-                    android:focusable="true"
-                    android:layout_width="?attr/actionBarSize"
-                    android:layout_height="?attr/actionBarSize"
-                    android:scaleType="fitCenter"
-                    android:spinnerMode="dropdown"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
+                    <com.mycompany.ShapeSounds.MySpinner
+                        android:layout_weight="1"
+                        android:id="@+id/draw_spinner"
+                        android:focusable="true"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:scaleType="fitCenter"
+                        android:spinnerMode="dropdown"
+                        android:padding="5dp" />
 
+                    <ImageButton
+                        android:layout_weight="1"
+                        android:id="@+id/navButton"
+                        android:focusable="true"
+                        android:src="@drawable/nav_custom"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:scaleType="fitCenter"/>
 
- android:padding="5dp" />
+                    <ImageButton
+                        android:layout_weight="1"
+                        android:id = "@+id/playButton"
+                        android:focusable="true"
+                        android:src="@drawable/stop_play"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:scaleType="fitCenter"/>
 
+                    <ImageButton
+                        android:layout_weight="1"
+                        android:id="@+id/undoButton"
+                        android:focusable="true"
+                        android:src="@drawable/undo_custom"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:scaleType="fitCenter"/>
 
-                <!--<ImageButton
-                    android:id="@+id/drawButton"
-                    android:focusable="true"
-                    android:src="@drawable/triangle_custom"
-                    android:layout_width="?attr/actionBarSize"
-                    android:layout_height="?attr/actionBarSize"
-                    android:scaleType="fitCenter"/>
-                    -->
-                <ImageButton
-                    android:id="@+id/navButton"
-                    android:focusable="true"
-                    android:src="@drawable/nav_custom"
-                    android:layout_width="?attr/actionBarSize"
-                    android:layout_height="?attr/actionBarSize"
-                    android:scaleType="fitCenter"/>
-                <ImageButton
-                    android:id = "@+id/playButton"
-                    android:focusable="true"
-                    android:src="@drawable/stop_play"
-                    android:layout_width="?attr/actionBarSize"
-                    android:layout_height="?attr/actionBarSize"
-                    android:scaleType="fitCenter"/>
-               <!--
-                <ImageButton
-                    android:id = "@+id/stopButton"
-                    android:focusable="true"
-                    android:src="@drawable/stop"
-                    android:layout_width="?attr/actionBarSize"
-                    android:layout_height="?attr/actionBarSize"
-                    android:scaleType="fitCenter"/>
-                    -->
+                    <ImageButton
+                        android:layout_weight="1"
+                        android:id="@+id/redoButton"
+                        android:focusable="true"
+                        android:src="@drawable/redo_custom"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:scaleType="fitCenter"/>
+                    <ImageButton
+                        android:layout_weight="1"
+                        android:id="@+id/clearButton"
+                        android:focusable="true"
+                        android:src="@drawable/clear_custom"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:scaleType="fitCenter"/>
 
-                <ImageButton
-                    android:id="@+id/undoButton"
-                    android:focusable="true"
-                    android:src="@drawable/undo"
-                    android:layout_width="?attr/actionBarSize"
-                    android:layout_height="?attr/actionBarSize"
-                    android:scaleType="fitCenter"/>
-                <ImageButton
-                    android:id="@+id/clearButton"
-                    android:focusable="true"
-                    android:src="@drawable/clear"
-                    android:layout_width="?attr/actionBarSize"
-                    android:layout_height="?attr/actionBarSize"
-                    android:scaleType="fitCenter"/>
+                </LinearLayout>
+
             </android.support.v7.widget.Toolbar>
+
     <com.mycompany.ShapeSounds.CustomDrawableView
         android:id="@+id/drawView"
         android:layout_width="match_parent"
@@ -81,4 +84,16 @@
         android:layout_alignParentBottom="true"
         android:layout_below="@+id/my_toolbar"
         android:background="#ffffffff" />
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-3940256099942544/6300978111"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true">
+    </com.google.android.gms.ads.AdView>
 </RelativeLayout>

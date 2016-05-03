@@ -3,6 +3,7 @@ package com.mycompany.ShapeSounds;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.support.v4.view.GestureDetectorCompat;
@@ -45,11 +46,13 @@ public class MyActivity extends ActionBarActivity implements AdapterView.OnItemS
     private MySpinner drawButton;//Spinner;
     private ImageButton playButton;
     private ImageButton navButton;
-    private View lastSelectedShape = null;
+
     private ImageButton clearButton;
     private ImageButton undoButton;
+    private ImageButton redoButton;
     boolean first = true;
     private View selectedButton;
+    private View lastSelectedShape = null;
     private InterstitialAd mInterstitialAd;
     private CustomCountDownTimer player = null;
     int[] arr_images = {R.drawable.triangle_custom,R.drawable.square_custom,R.drawable.pentagon_custom,R.drawable.hexagon_custom};//,R.drawable.circle_custom};
@@ -66,6 +69,7 @@ public class MyActivity extends ActionBarActivity implements AdapterView.OnItemS
 
 try {
     Sound.initSound(this);
+    setVolumeControlStream(AudioManager.STREAM_MUSIC);
     setContentView(R.layout.activity_my);
     mCustomDrawableView = (CustomDrawableView) findViewById(R.id.drawView);
     Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -74,9 +78,10 @@ try {
     drawButton = (MySpinner) findViewById(R.id.draw_spinner);
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
        Toolbar toolbar = (Toolbar)findViewById(R.id.my_toolbar);
-        int offset = toolbar.getMinimumHeight();//getHeight();
+        int offset = toolbar.getMinimumHeight();
         drawButton.setDropDownVerticalOffset(offset);
     }
+
 
     drawButton.setAdapter(new MyAdapter(MyActivity.this, R.layout.draw_spinner_row, shapeNames));
     drawButton.setOnItemSelectedListener(MyActivity.this);
@@ -90,18 +95,18 @@ try {
         }
     });
 
-    int ddoffset = drawButton.getDropDownWidth();
+
     playButton = (ImageButton) findViewById(R.id.playButton);
     navButton = (ImageButton) findViewById(R.id.navButton);
     clearButton = (ImageButton) findViewById(R.id.clearButton);
     undoButton = (ImageButton) findViewById(R.id.undoButton);
-
+    redoButton = (ImageButton) findViewById(R.id.redoButton);
     playButton.setBackgroundResource(R.drawable.button_custom);
     navButton.setBackgroundResource(R.drawable.button_custom);
     clearButton.setBackgroundResource(R.drawable.button_custom);
     undoButton.setBackgroundResource(R.drawable.button_custom);
+    redoButton.setBackgroundResource(R.drawable.button_custom);
     drawButton.setBackgroundResource(R.drawable.button_custom);
-    //drawButton.setSelection(0);
     drawButton.setBackgroundResource(R.drawable.button_custom);
 
     selectedButton = null;
@@ -112,9 +117,8 @@ try {
         public void onClick(View v) {
             try {
                 mCustomDrawableView.Clear();
-            }
-            catch(Exception e){
-                String a  = e.getMessage();
+            } catch (Exception e) {
+                String a = e.getMessage();
                 System.out.println(a);
             }
         }
@@ -134,6 +138,53 @@ try {
     });
 
 
+    redoButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            try {
+                mCustomDrawableView.Redo();
+            }
+            catch(Exception e){
+                String a  = e.getMessage();
+                System.out.println(a);
+            }
+        }
+    });
+
+
+    mCustomDrawableView.setHistoryOnEmptyListener(new OnEmptyListener() {
+        @Override
+        public void onEmpty() {
+            undoButton.setEnabled(false);
+        }
+    });
+
+    mCustomDrawableView.setHistoryOnFirstElementAddedListener(new OnFirstElementAdded() {
+        @Override
+        public void FirstAdded() {
+            undoButton.setEnabled(true);
+        }
+    });
+
+
+
+    mCustomDrawableView.setFutureOnEmptyListener(new OnEmptyListener() {
+        @Override
+        public void onEmpty() {
+            redoButton.setEnabled(false);
+        }
+    });
+
+    mCustomDrawableView.setFutureOnFirstElementAddedListener(new OnFirstElementAdded() {
+        @Override
+        public void FirstAdded() {
+            redoButton.setEnabled(true);
+        }
+    });
+
+
+    undoButton.setEnabled(false);
+    redoButton.setEnabled(false);
 
     playButton.setOnClickListener(new View.OnClickListener() {
         @Override
@@ -141,21 +192,26 @@ try {
             try {
                 if (!playButton.isSelected()) {
                     mCustomDrawableView.QueUpForPlay();
-                    player = Sound.playAll(Arrays.asList(new View[]{selectedButton, drawButton, playButton, clearButton, undoButton, navButton}), new Ifunction() {
+                    player = Sound.playAll(Arrays.asList(new VBpair[]{new VBpair(selectedButton,selectedButton.isEnabled()), new VBpair(drawButton,drawButton.isEnabled()), new VBpair(playButton,playButton.isEnabled()), new VBpair(clearButton,clearButton.isEnabled()), new VBpair(undoButton,undoButton.isEnabled()),new VBpair(redoButton,redoButton.isEnabled()), new VBpair(navButton,navButton.isEnabled())}), new Ifunction() {
                         View selectBtn = selectedButton;
                         ImageButton playBtn = playButton;
                         CustomDrawableView cdv = mCustomDrawableView;
 
                         @Override
                         public void execute(Object o) {
-                            View btn = (View) o;
-                            if (btn == playBtn) {
+                            VBpair btn = (VBpair) o;
+                            if (btn.view == playBtn) {
                                 playBtn.setSelected(false);
                                 cdv.CanDraw(true);
                             } else {
-                                btn.setEnabled(true);
-                                if (btn == selectBtn) {
+                                btn.view.setEnabled(btn.enabled);
+                                if (btn.view == selectBtn) {
                                     selectBtn.setSelected(true);
+                                    boolean focused = selectBtn.requestFocus();
+                                    boolean isselected = selectBtn.isSelected();
+
+                                    int abc = 123;
+                                    abc+=4;
                                 }
                             }
 
@@ -163,10 +219,12 @@ try {
                     });
                     if (player != null) {
                         selectedButton.setSelected(false);
+
                         playButton.setSelected(true);
                         drawButton.setEnabled(false);
                         clearButton.setEnabled(false);
                         undoButton.setEnabled(false);
+                        redoButton.setEnabled(false);
                         mCustomDrawableView.CanDraw(false);
                         navButton.setEnabled(false);
                         player.start();
@@ -198,6 +256,12 @@ try {
             }
         }
     });
+
+    AdView mAdView = (AdView) findViewById(R.id.adView);
+    AdRequest adRequest = new AdRequest.Builder()
+            .addTestDevice("YOUR_DEVICE_HASH")
+            .build();
+    mAdView.loadAd(adRequest);
 }
 
 catch(Exception e){
@@ -307,5 +371,14 @@ catch(Exception e){
         }
         return super.onCreateOptionsMenu(menu);
 
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        if (player != null) {
+            player.stop();
+            player = null;
+        }
     }
 }
