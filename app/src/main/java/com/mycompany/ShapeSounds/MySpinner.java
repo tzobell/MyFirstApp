@@ -18,25 +18,35 @@ public class MySpinner extends Spinner {
     }
 
     public MySpinner(Context context)
-    { super(context); }
+    {
+        super(context);
+    }
 
 
 
     public MySpinner(Context context, AttributeSet attrs, int defStyle)
-    { super(context, attrs, defStyle); }
+    {
+
+        super(context, attrs, defStyle);
+    }
 
     @Override
     public void setSelection(int position, boolean animate)
     {
-        int pos = getSelectedItemPosition();
-        super.setSelection(position, animate);
+        try {
+            int pos = getSelectedItemPosition();
+            super.setSelection(position, animate);
 
-        if (position == pos)
-        {
-            getOnItemSelectedListener().onItemSelected(MySpinner.this, getSelectedView(), position, getSelectedItemId());
+            if (position == pos) {
+                getOnItemSelectedListener().onItemSelected(MySpinner.this, getSelectedView(), position, getSelectedItemId());
+            }
+            if (first) {
+                first = false;
+            }
         }
-        if(first){
-            first = false;
+        catch(Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
     }
 
@@ -49,41 +59,46 @@ public class MySpinner extends Spinner {
     @Override
     public void setSelection(int position)
     {
-        int pos = getSelectedItemPosition();
-        View view = getSelectedView();
-        view.setSelected(true);
-        if(first){
-            first = false;
-        }
-        if(pos!=position){
-            super.setSelection(position);
-            int abc= 123;
-            abc+=3;
-        }
-        //if(first){
-      //      view.invalidate();
-      //      this.invalidate();
-      //      first = false;
-       // }
+        try {
+            int pos = getSelectedItemPosition();
+            View view = getSelectedView();
+            view.setSelected(true);
+            if (first) {
+                first = false;
+            }
+            if (pos != position) {
+                super.setSelection(position);
 
-        /*if (position == pos)
-        {
-            getOnItemSelectedListener().onItemSelected(MySpinner.this, getSelectedView(), position, getSelectedItemId());
-            boolean s = getSelectedView().isSelected();
+            }
+        }
+        catch(Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
 
-        }*/
     }
 
+    @Override
+    public void setEnabled(boolean enabled){
+        super.setEnabled(enabled);
+        this.setAlpha(enabled ? 1.0f : 0.4f);;
+    }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        View view = getSelectedView();
-        boolean selected = view!=null?view.isSelected():false;
-        super.onLayout(changed, l, t, r, b);
+        try {
+            View view = getSelectedView();
+            boolean selected = view != null ? view.isSelected() : false;
+            super.onLayout(changed, l, t, r, b);
 
-            if(view!=null){
+            if (view != null) {
                 view.setSelected(selected);
             }
+        }
+        catch(Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
 
     }
 }

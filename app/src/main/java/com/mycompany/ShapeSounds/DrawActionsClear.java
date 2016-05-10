@@ -9,23 +9,37 @@ import java.util.Vector;
  */
 public class DrawActionsClear implements DrawActions{
 
-    private Vector<DrawActions> shapeHistory;
 
-    public DrawActionsClear(Collection<DrawActions> shapehistory){
-        shapeHistory = new Vector<>(shapehistory);
+    private Vector<ShapeFormula> clearedShapes;
+
+    public DrawActionsClear(Collection<ShapeFormula> shapes){
+        try {
+            clearedShapes = new Vector<>(shapes);
+        }
+        catch(Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
+        }
 
     }
 
     public void execute(Vector<ShapeFormula> shapes){
-        Collections.reverse(shapeHistory);
-        for(DrawActions da:shapeHistory){
-            da.undo(shapes);
-        }
-        Collections.reverse(shapeHistory);
+       try {
+           shapes.clear();
+       }
+       catch(Exception e){
+           String a  = e.getMessage();
+           System.out.println(a);
+       }
     }
     public void undo(Vector<ShapeFormula> shapes){
-        for(DrawActions da:shapeHistory){
-            da.execute(shapes);
+        try {
+            shapes.clear();
+            shapes.addAll(clearedShapes);
+        }
+        catch(Exception e){
+            String a  = e.getMessage();
+            System.out.println(a);
         }
     }
 }

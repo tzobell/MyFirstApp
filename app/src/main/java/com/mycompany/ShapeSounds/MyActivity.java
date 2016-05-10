@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -45,15 +46,15 @@ public class MyActivity extends ActionBarActivity implements AdapterView.OnItemS
     CustomDrawableView mCustomDrawableView;
     private MySpinner drawButton;//Spinner;
     private ImageButton playButton;
-    private ImageButton navButton;
+    private MyImageButton navButton;
 
-    private ImageButton clearButton;
-    private ImageButton undoButton;
-    private ImageButton redoButton;
+    private MyImageButton clearButton;
+    private MyImageButton undoButton;
+    private MyImageButton redoButton;
     boolean first = true;
     private View selectedButton;
     private View lastSelectedShape = null;
-    private InterstitialAd mInterstitialAd;
+
     private CustomCountDownTimer player = null;
     int[] arr_images = {R.drawable.triangle_custom,R.drawable.square_custom,R.drawable.pentagon_custom,R.drawable.hexagon_custom};//,R.drawable.circle_custom};
     String[] shapeNames = {"triangle","square","pentagon","hexagon"};//,"circle"};
@@ -68,6 +69,7 @@ public class MyActivity extends ActionBarActivity implements AdapterView.OnItemS
 
 
 try {
+
     Sound.initSound(this);
     setVolumeControlStream(AudioManager.STREAM_MUSIC);
     setContentView(R.layout.activity_my);
@@ -97,10 +99,10 @@ try {
 
 
     playButton = (ImageButton) findViewById(R.id.playButton);
-    navButton = (ImageButton) findViewById(R.id.navButton);
-    clearButton = (ImageButton) findViewById(R.id.clearButton);
-    undoButton = (ImageButton) findViewById(R.id.undoButton);
-    redoButton = (ImageButton) findViewById(R.id.redoButton);
+    navButton = (MyImageButton) findViewById(R.id.navButton);
+    clearButton = (MyImageButton) findViewById(R.id.clearButton);
+    undoButton = (MyImageButton) findViewById(R.id.undoButton);
+    redoButton = (MyImageButton) findViewById(R.id.redoButton);
     playButton.setBackgroundResource(R.drawable.button_custom);
     navButton.setBackgroundResource(R.drawable.button_custom);
     clearButton.setBackgroundResource(R.drawable.button_custom);
@@ -175,6 +177,9 @@ try {
         }
     });
 
+
+
+
     mCustomDrawableView.setFutureOnFirstElementAddedListener(new OnFirstElementAdded() {
         @Override
         public void FirstAdded() {
@@ -182,9 +187,27 @@ try {
         }
     });
 
+    mCustomDrawableView.setShapesOnFirstElementAddedListener(new OnFirstElementAdded() {
+        @Override
+        public void FirstAdded() {
+            playButton.setEnabled(true);
+            clearButton.setEnabled(true);
+        }
+    });
+
+    mCustomDrawableView.setShapesOnEmptyListener(new OnEmptyListener() {
+        @Override
+        public void onEmpty() {
+            playButton.setEnabled(false);
+            clearButton.setEnabled(false);
+        }
+    });
+
 
     undoButton.setEnabled(false);
     redoButton.setEnabled(false);
+    playButton.setEnabled(false);
+    clearButton.setEnabled(false);
 
     playButton.setOnClickListener(new View.OnClickListener() {
         @Override
@@ -196,9 +219,13 @@ try {
                         View selectBtn = selectedButton;
                         ImageButton playBtn = playButton;
                         CustomDrawableView cdv = mCustomDrawableView;
+                        boolean allowtimout = false;
 
                         @Override
                         public void execute(Object o) {
+                            if(!allowtimout){
+                                MyActivity.this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);//notes done playing so allow screen to time out.
+                            }
                             VBpair btn = (VBpair) o;
                             if (btn.view == playBtn) {
                                 playBtn.setSelected(false);
@@ -209,17 +236,14 @@ try {
                                     selectBtn.setSelected(true);
                                     boolean focused = selectBtn.requestFocus();
                                     boolean isselected = selectBtn.isSelected();
-
-                                    int abc = 123;
-                                    abc+=4;
                                 }
                             }
 
                         }
                     });
                     if (player != null) {
+                        MyActivity.this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);//keep screen from timing out while playing notes
                         selectedButton.setSelected(false);
-
                         playButton.setSelected(true);
                         drawButton.setEnabled(false);
                         clearButton.setEnabled(false);
@@ -259,7 +283,7 @@ try {
 
     AdView mAdView = (AdView) findViewById(R.id.adView);
     AdRequest adRequest = new AdRequest.Builder()
-            .addTestDevice("YOUR_DEVICE_HASH")
+
             .build();
     mAdView.loadAd(adRequest);
 }
@@ -381,4 +405,6 @@ catch(Exception e){
             player = null;
         }
     }
+
+
 }

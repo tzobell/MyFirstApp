@@ -6,7 +6,6 @@
         android:state_focused="true" />
     <item android:drawable="@drawable/redoinverted"
         android:state_selected="true" />
-    <item android:drawable="@drawable/redodisabled"
-        android:state_enabled="false"/>
+
     <item android:drawable="@drawable/redo" />
 </selector>

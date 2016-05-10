@@ -6,7 +6,5 @@
         android:state_focused="true" />
     <item android:drawable="@drawable/undoinverted"
         android:state_selected="true" />
-    <item android:drawable="@drawable/undodisabled"
-        android:state_enabled="false"/>
     <item android:drawable="@drawable/undo" />
 </selector>

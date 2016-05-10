@@ -43,7 +43,7 @@ public class CustomDrawableView extends View {
     ShapeFormula startShape = null;
     ShapeFormula endShape = null;
     ShapeFormula previousEndShape = null;
-    private Vector<ShapeFormula> shapes;
+    private ListeningVector<ShapeFormula> shapes;
     private FixedStackSize<DrawActions> shapeHistory;
     private FixedStackSize<DrawActions> shapeFuture;
     private Vector<MotionEvent> motionevents;
@@ -106,7 +106,6 @@ public class CustomDrawableView extends View {
     }
     //set listener for shapeHistory stack for when stack goes from 0 elements to 1 or more element
     public void setHistoryOnFirstElementAddedListener(OnFirstElementAdded firstadded){
-
         shapeHistory.setOnFirstElementAddedListener(firstadded);
     }
 
@@ -114,18 +113,24 @@ public class CustomDrawableView extends View {
 
     //set listener for shapeFuture stack for when stack becomes empty
     public void setFutureOnEmptyListener(OnEmptyListener onemptylistener){
-
         shapeFuture.setOnEmptyListener(onemptylistener);
 
     }
     //set listener for shapeFuture stack for when stack goes from 0 elements to 1 or more element
     public void setFutureOnFirstElementAddedListener(OnFirstElementAdded firstadded){
-
         shapeFuture.setOnFirstElementAddedListener(firstadded);
     }
 
+    public void setShapesOnFirstElementAddedListener(OnFirstElementAdded firstadded){
+        shapes.setOnFirstElementAddedListener(firstadded);
+    }
+
+    public void setShapesOnEmptyListener(OnEmptyListener onEmptyListener){
+        shapes.setOnEmptyListener(onEmptyListener);
+    }
+
     private void init() {
-        shapes = new Vector<>();
+        shapes = new ListeningVector<>();
         intersectShapes = new Vector<>();
         intersectThisShape = new Vector<>();
         intersectPrevShapes = new Vector<>();
@@ -285,10 +290,12 @@ public class CustomDrawableView extends View {
             bm = Bitmap.createBitmap(bm.getWidth(), bm.getHeight(), Bitmap.Config.ARGB_8888);
             can = new Canvas(bm);
 
-           if(!movingThroughTime && shapes.size() > 0){
-               shapes.clear();
-               DrawActionsClear dac = new DrawActionsClear(shapeHistory);
+           if(!movingThroughTime && shapes.size() > 0 ){
+
+               DrawActionsClear dac = new DrawActionsClear(shapes);
                shapeHistory.push(dac);
+               shapeFuture.clear();
+               shapes.clear();
                scaleFactor = 1f;
                drawMatrix = new Matrix();
                currentRect = new RectF(0,0,canvasWidth,canvasHeight);

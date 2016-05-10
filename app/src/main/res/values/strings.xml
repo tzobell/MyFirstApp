@@ -35,6 +35,7 @@
     <string name="title_activity_draw">draw</string>
     <string name="Draw">Draw</string>
     <string name="Nav">Nav</string>
+
     <string name="playbutton_ad_unit_id">ca-app-pub-3940256099942544/1033173712</string>
     <!--<string name="playbutton_ad_unit_id">ca-app-pub-3075827747748285/9863740053</string>-->
     <string name="bottomAdd_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
